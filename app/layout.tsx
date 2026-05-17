@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { PLATFORM } from '@/lib/constants/platform';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: {
     default: `${PLATFORM.name} — ${PLATFORM.taglineEn}`,

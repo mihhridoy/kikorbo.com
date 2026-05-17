@@ -1,6 +1,8 @@
 import { Navbar } from '@/components/layout/Navbar';
 import { ExpertSidebar } from '@/components/layout/ExpertSidebar';
 
+export const dynamic = 'force-dynamic';
+
 export default function ExpertLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">

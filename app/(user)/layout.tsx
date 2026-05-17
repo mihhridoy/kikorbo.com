@@ -1,6 +1,8 @@
 import { Navbar } from '@/components/layout/Navbar';
 import { UserSidebar } from '@/components/layout/UserSidebar';
 
+export const dynamic = 'force-dynamic';
+
 export default function UserLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
