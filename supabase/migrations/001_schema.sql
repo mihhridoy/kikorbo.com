@@ -308,6 +308,84 @@ CREATE POLICY "Experts see own payouts" ON public.payout_requests
   );
 
 -- ============================================================
+-- MISSING PUBLIC READ POLICIES (packages, skills, reviews)
+-- These tables need anonymous/public access for the expert listing pages
+-- ============================================================
+ALTER TABLE public.packages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.expert_skills ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.expert_documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.availability_slots ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.disputes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.booking_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.consultation_rooms ENABLE ROW LEVEL SECURITY;
+
+-- Packages: public can read active packages (needed for expert profile page)
+CREATE POLICY "Public read active packages" ON public.packages
+  FOR SELECT USING (is_active = true);
+
+CREATE POLICY "Experts manage own packages" ON public.packages
+  FOR ALL USING (
+    auth.uid() = (SELECT user_id FROM experts WHERE id = expert_id)
+  );
+
+-- Expert skills: fully public (displayed on expert cards/profiles)
+CREATE POLICY "Public read expert skills" ON public.expert_skills
+  FOR SELECT USING (true);
+
+CREATE POLICY "Experts manage own skills" ON public.expert_skills
+  FOR ALL USING (
+    auth.uid() = (SELECT user_id FROM experts WHERE id = expert_id)
+  );
+
+-- Reviews: public read non-hidden reviews (needed for expert profile page)
+CREATE POLICY "Public read reviews" ON public.reviews
+  FOR SELECT USING (is_hidden = false);
+
+CREATE POLICY "Users insert reviews" ON public.reviews
+  FOR INSERT WITH CHECK (auth.uid() = reviewer_id);
+
+-- Expert documents: experts see own
+CREATE POLICY "Experts see own documents" ON public.expert_documents
+  FOR SELECT USING (
+    auth.uid() = (SELECT user_id FROM experts WHERE id = expert_id)
+  );
+
+CREATE POLICY "Experts insert documents" ON public.expert_documents
+  FOR INSERT WITH CHECK (
+    auth.uid() = (SELECT user_id FROM experts WHERE id = expert_id)
+  );
+
+-- Availability slots: public read (needed for booking calendar)
+CREATE POLICY "Public read availability" ON public.availability_slots
+  FOR SELECT USING (true);
+
+CREATE POLICY "Experts manage availability" ON public.availability_slots
+  FOR ALL USING (
+    auth.uid() = (SELECT user_id FROM experts WHERE id = expert_id)
+  );
+
+-- Consultation rooms: booking participants only
+CREATE POLICY "Participants see own rooms" ON public.consultation_rooms
+  FOR SELECT USING (
+    auth.uid() = (SELECT user_id FROM bookings WHERE id = booking_id) OR
+    auth.uid() = (SELECT e.user_id FROM experts e JOIN bookings b ON b.expert_id = e.id WHERE b.id = booking_id)
+  );
+
+-- Booking messages: booking participants only
+CREATE POLICY "Participants see booking messages" ON public.booking_messages
+  FOR SELECT USING (
+    auth.uid() = (SELECT user_id FROM bookings WHERE id = booking_id) OR
+    auth.uid() = (SELECT e.user_id FROM experts e JOIN bookings b ON b.expert_id = e.id WHERE b.id = booking_id)
+  );
+
+CREATE POLICY "Participants send booking messages" ON public.booking_messages
+  FOR INSERT WITH CHECK (auth.uid() = sender_id);
+
+-- Disputes: participants see own
+CREATE POLICY "Participants see disputes" ON public.disputes
+  FOR SELECT USING (auth.uid() = raised_by);
+
+-- ============================================================
 -- FUNCTIONS & TRIGGERS
 -- ============================================================
 

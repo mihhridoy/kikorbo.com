@@ -5,7 +5,30 @@
 -- =============================================================
 
 -- ─────────────────────────────────────────────────────────────
--- PROFILES (role = expert, no real auth.users link needed)
+-- AUTH USERS (required because profiles.id FK → auth.users.id)
+-- These are demo-only accounts with no real password/login
+-- ─────────────────────────────────────────────────────────────
+INSERT INTO auth.users (
+  id, instance_id, aud, role, email,
+  encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data,
+  created_at, updated_at, is_super_admin
+)
+VALUES
+  ('11111111-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'rafiqul@demo.expertlagbe.com', '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Rafiqul Islam"}', NOW(), NOW(), false),
+  ('11111111-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'nusrat@demo.expertlagbe.com',   '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Nusrat Jahan"}',   NOW(), NOW(), false),
+  ('11111111-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'tanvir@demo.expertlagbe.com',   '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Tanvir Ahmed"}',   NOW(), NOW(), false),
+  ('11111111-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'sumaiya@demo.expertlagbe.com',  '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Sumaiya Khatun"}', NOW(), NOW(), false),
+  ('11111111-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'arif@demo.expertlagbe.com',     '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Arif Hossain"}',   NOW(), NOW(), false),
+  ('11111111-0000-0000-0000-000000000006', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'fatema@demo.expertlagbe.com',   '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Fatema Begum"}',   NOW(), NOW(), false),
+  ('11111111-0000-0000-0000-000000000007', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'sabbir@demo.expertlagbe.com',   '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Sabbir Rahman"}',  NOW(), NOW(), false),
+  ('11111111-0000-0000-0000-000000000008', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'mehrin@demo.expertlagbe.com',   '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Mehrin Akter"}',   NOW(), NOW(), false),
+  ('11111111-0000-0000-0000-000000000009', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'imran@demo.expertlagbe.com',    '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Imran Khan"}',     NOW(), NOW(), false),
+  ('11111111-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'roksana@demo.expertlagbe.com',  '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Roksana Parvin"}', NOW(), NOW(), false)
+ON CONFLICT (id) DO NOTHING;
+
+-- ─────────────────────────────────────────────────────────────
+-- PROFILES (role = expert)
 -- ─────────────────────────────────────────────────────────────
 INSERT INTO profiles (id, full_name, username, email, phone, avatar_url, role, is_banned)
 VALUES
