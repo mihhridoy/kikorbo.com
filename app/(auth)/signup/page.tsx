@@ -26,37 +26,34 @@ export default function SignupPage() {
     setLoading(true);
     setError('');
 
-    const { data, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName },
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback`,
-      },
-    });
-
-    if (authError) {
-      setError(authError.message);
-      setLoading(false);
-      return;
-    }
-
-    if (data.user) {
-      // Profile is auto-created by DB trigger; upsert as fallback
-      await supabase.from('profiles').upsert({
-        id: data.user.id,
-        full_name: fullName,
+    try {
+      const { data, error: authError } = await supabase.auth.signUp({
         email,
-        role: 'user',
+        password,
+        options: {
+          data: { full_name: fullName },
+          emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback`,
+        },
       });
-      // If session exists (email confirmation off), go straight to dashboard
-      if (data.session) {
-        router.push('/dashboard');
+
+      if (authError) {
+        setError(authError.message);
         return;
       }
-      setSuccess(true);
+
+      if (data?.user) {
+        await supabase.from('profiles').upsert({ id: data.user.id, full_name: fullName, email, role: 'user' });
+        if (data.session) {
+          router.push('/dashboard');
+          return;
+        }
+        setSuccess(true);
+      }
+    } catch (err: any) {
+      setError(err?.message || 'কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   if (success) {

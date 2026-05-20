@@ -23,20 +23,25 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
-    const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    try {
+      const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (authError) {
-      setError('ইমেইল বা পাসওয়ার্ড ভুল হয়েছে।');
+      if (authError) {
+        setError('ইমেইল বা পাসওয়ার্ড ভুল হয়েছে।');
+        return;
+      }
+
+      if (data.session) {
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single();
+        const role = profile?.role;
+        if (role === 'admin') router.push('/admin/dashboard');
+        else if (role === 'expert') router.push('/expert/dashboard');
+        else router.push('/dashboard');
+      }
+    } catch (err: any) {
+      setError(err?.message || 'কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+    } finally {
       setLoading(false);
-      return;
-    }
-
-    if (data.session) {
-      const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single();
-      const role = profile?.role;
-      if (role === 'admin') router.push('/admin/dashboard');
-      else if (role === 'expert') router.push('/expert/dashboard');
-      else router.push('/dashboard');
     }
   };
 
