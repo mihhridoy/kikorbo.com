@@ -42,12 +42,18 @@ export default function SignupPage() {
     }
 
     if (data.user) {
+      // Profile is auto-created by DB trigger; upsert as fallback
       await supabase.from('profiles').upsert({
         id: data.user.id,
         full_name: fullName,
         email,
         role: 'user',
       });
+      // If session exists (email confirmation off), go straight to dashboard
+      if (data.session) {
+        router.push('/dashboard');
+        return;
+      }
       setSuccess(true);
     }
     setLoading(false);
@@ -57,10 +63,10 @@ export default function SignupPage() {
     return (
       <div className="w-full max-w-md">
         <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-8 text-center">
-          <div className="text-5xl mb-4">✉️</div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">ইমেইল যাচাই করুন</h2>
-          <p className="text-gray-500 text-sm mb-6">আমরা {email}-এ একটি যাচাই লিংক পাঠিয়েছি। আপনার ইনবক্স চেক করুন।</p>
-          <Button variant="outline" onClick={() => router.push('/login')} className="w-full">লগইনে যান</Button>
+          <div className="text-5xl mb-4">✅</div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">অ্যাকাউন্ট তৈরি হয়েছে!</h2>
+          <p className="text-gray-500 text-sm mb-6">আপনার অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে। এখন লগইন করুন।</p>
+          <Button onClick={() => router.push('/login')} className="w-full">লগইন করুন</Button>
         </div>
       </div>
     );
