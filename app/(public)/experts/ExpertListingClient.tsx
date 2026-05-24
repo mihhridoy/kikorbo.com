@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { ExpertCardSkeleton } from '@/components/shared/LoadingSkeleton';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { CATEGORIES } from '@/lib/constants/platform';
+import { DEMO_EXPERTS } from '@/lib/constants/demoExperts';
 import { Users } from 'lucide-react';
 
 interface FilterState {
@@ -66,42 +67,46 @@ export function ExpertListingClient() {
 
       const { data, error } = await query.limit(12);
 
-      if (!error && data) {
-        const enriched = data.map((expert: any) => {
-          const activePrices = (expert.packages || [])
-            .filter((p: any) => p.is_active)
-            .map((p: any) => p.price_bdt);
-          const minPrice = activePrices.length > 0 ? Math.min(...activePrices) : 300;
+      const source = (!error && data && data.length > 0) ? data.map((expert: any) => {
+        const activePrices = (expert.packages || [])
+          .filter((p: any) => p.is_active)
+          .map((p: any) => p.price_bdt);
+        const minPrice = activePrices.length > 0 ? Math.min(...activePrices) : 300;
+        return {
+          id: expert.id,
+          username: expert.profiles?.username,
+          full_name: expert.profiles?.full_name || 'বিশেষজ্ঞ',
+          avatar_url: expert.profiles?.avatar_url,
+          tagline: expert.tagline,
+          category: expert.category,
+          avg_rating: expert.avg_rating || 0,
+          total_reviews: expert.total_reviews || 0,
+          total_sessions: expert.total_sessions || 0,
+          is_online: expert.is_online,
+          verification_status: expert.verification_status,
+          min_price: minPrice,
+        };
+      }) : DEMO_EXPERTS;
 
-          return {
-            id: expert.id,
-            username: expert.profiles?.username,
-            full_name: expert.profiles?.full_name || 'বিশেষজ্ঞ',
-            avatar_url: expert.profiles?.avatar_url,
-            tagline: expert.tagline,
-            category: expert.category,
-            avg_rating: expert.avg_rating || 0,
-            total_reviews: expert.total_reviews || 0,
-            total_sessions: expert.total_sessions || 0,
-            is_online: expert.is_online,
-            verification_status: expert.verification_status,
-            min_price: minPrice,
-          };
-        }).filter((e: any) => {
-          if (filters.minPrice && e.min_price < filters.minPrice) return false;
-          if (filters.maxPrice && e.min_price > filters.maxPrice) return false;
-          if (filters.q) {
-            const q = filters.q.toLowerCase();
-            return e.full_name.toLowerCase().includes(q) || e.category.toLowerCase().includes(q) || (e.tagline || '').toLowerCase().includes(q);
-          }
-          return true;
-        });
+      const enriched = source.filter((e: any) => {
+        if (filters.category && e.category !== filters.category) return false;
+        if (filters.onlineOnly && !e.is_online) return false;
+        if (filters.minRating > 0 && e.avg_rating < filters.minRating) return false;
+        if (filters.minPrice && e.min_price < filters.minPrice) return false;
+        if (filters.maxPrice && e.min_price > filters.maxPrice) return false;
+        if (filters.q) {
+          const q = filters.q.toLowerCase();
+          return e.full_name.toLowerCase().includes(q) || e.category.toLowerCase().includes(q) || (e.tagline || '').toLowerCase().includes(q);
+        }
+        return true;
+      });
 
-        if (filters.sort === 'price_asc') enriched.sort((a: any, b: any) => a.min_price - b.min_price);
-        if (filters.sort === 'price_desc') enriched.sort((a: any, b: any) => b.min_price - a.min_price);
+      if (filters.sort === 'rating') enriched.sort((a: any, b: any) => b.avg_rating - a.avg_rating);
+      if (filters.sort === 'price_asc') enriched.sort((a: any, b: any) => a.min_price - b.min_price);
+      if (filters.sort === 'price_desc') enriched.sort((a: any, b: any) => b.min_price - a.min_price);
+      if (filters.sort === 'sessions') enriched.sort((a: any, b: any) => b.total_sessions - a.total_sessions);
 
-        setExperts(enriched);
-      }
+      setExperts(enriched);
     } catch (err) {
       console.error(err);
     } finally {
