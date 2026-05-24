@@ -48,70 +48,69 @@ export function ExpertListingClient() {
 
   async function fetchExperts() {
     setLoading(true);
+
+    // Always start with demo data; replace with real Supabase data if available
+    let source: typeof DEMO_EXPERTS = DEMO_EXPERTS;
+
     try {
-      let query = supabase
+      const { data, error } = await supabase
         .from('experts')
-        .select(`
-          *,
-          profiles!inner(full_name, username, avatar_url),
-          packages(price_bdt, is_active)
-        `)
-        .eq('verification_status', 'approved');
+        .select(`*, profiles!inner(full_name, username, avatar_url), packages(price_bdt, is_active)`)
+        .eq('verification_status', 'approved')
+        .limit(50);
 
-      if (filters.category) query = query.eq('category', filters.category);
-      if (filters.onlineOnly) query = query.eq('is_online', true);
-      if (filters.minRating > 0) query = query.gte('avg_rating', filters.minRating);
-
-      if (filters.sort === 'rating') query = query.order('avg_rating', { ascending: false });
-      else if (filters.sort === 'sessions') query = query.order('total_sessions', { ascending: false });
-
-      const { data, error } = await query.limit(12);
-
-      const source = (!error && data && data.length > 0) ? data.map((expert: any) => {
-        const activePrices = (expert.packages || [])
-          .filter((p: any) => p.is_active)
-          .map((p: any) => p.price_bdt);
-        const minPrice = activePrices.length > 0 ? Math.min(...activePrices) : 300;
-        return {
-          id: expert.id,
-          username: expert.profiles?.username,
-          full_name: expert.profiles?.full_name || 'বিশেষজ্ঞ',
-          avatar_url: expert.profiles?.avatar_url,
-          tagline: expert.tagline,
-          category: expert.category,
-          avg_rating: expert.avg_rating || 0,
-          total_reviews: expert.total_reviews || 0,
-          total_sessions: expert.total_sessions || 0,
-          is_online: expert.is_online,
-          verification_status: expert.verification_status,
-          min_price: minPrice,
-        };
-      }) : DEMO_EXPERTS;
-
-      const enriched = source.filter((e: any) => {
-        if (filters.category && e.category !== filters.category) return false;
-        if (filters.onlineOnly && !e.is_online) return false;
-        if (filters.minRating > 0 && e.avg_rating < filters.minRating) return false;
-        if (filters.minPrice && e.min_price < filters.minPrice) return false;
-        if (filters.maxPrice && e.min_price > filters.maxPrice) return false;
-        if (filters.q) {
-          const q = filters.q.toLowerCase();
-          return e.full_name.toLowerCase().includes(q) || e.category.toLowerCase().includes(q) || (e.tagline || '').toLowerCase().includes(q);
-        }
-        return true;
-      });
-
-      if (filters.sort === 'rating') enriched.sort((a: any, b: any) => b.avg_rating - a.avg_rating);
-      if (filters.sort === 'price_asc') enriched.sort((a: any, b: any) => a.min_price - b.min_price);
-      if (filters.sort === 'price_desc') enriched.sort((a: any, b: any) => b.min_price - a.min_price);
-      if (filters.sort === 'sessions') enriched.sort((a: any, b: any) => b.total_sessions - a.total_sessions);
-
-      setExperts(enriched);
+      if (!error && data && data.length > 0) {
+        source = data.map((expert: any) => {
+          const activePrices = (expert.packages || [])
+            .filter((p: any) => p.is_active)
+            .map((p: any) => p.price_bdt);
+          const minPrice = activePrices.length > 0 ? Math.min(...activePrices) : 300;
+          return {
+            id: expert.id,
+            username: expert.profiles?.username,
+            full_name: expert.profiles?.full_name || 'বিশেষজ্ঞ',
+            avatar_url: expert.profiles?.avatar_url,
+            tagline: expert.tagline,
+            category: expert.category,
+            avg_rating: expert.avg_rating || 0,
+            total_reviews: expert.total_reviews || 0,
+            total_sessions: expert.total_sessions || 0,
+            is_online: expert.is_online,
+            verification_status: expert.verification_status,
+            min_price: minPrice,
+          };
+        });
+      }
     } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+      console.error('Expert fetch failed, using demo data', err);
     }
+
+    // Apply filters
+    let enriched = source.filter((e) => {
+      if (filters.category && e.category !== filters.category) return false;
+      if (filters.onlineOnly && !e.is_online) return false;
+      if (filters.minRating > 0 && e.avg_rating < filters.minRating) return false;
+      if (filters.minPrice && e.min_price < filters.minPrice) return false;
+      if (filters.maxPrice && e.min_price > filters.maxPrice) return false;
+      if (filters.q) {
+        const q = filters.q.toLowerCase();
+        return (
+          e.full_name.toLowerCase().includes(q) ||
+          e.category.toLowerCase().includes(q) ||
+          (e.tagline || '').toLowerCase().includes(q)
+        );
+      }
+      return true;
+    });
+
+    // Apply sorting
+    if (filters.sort === 'rating') enriched.sort((a, b) => b.avg_rating - a.avg_rating);
+    else if (filters.sort === 'price_asc') enriched.sort((a, b) => a.min_price - b.min_price);
+    else if (filters.sort === 'price_desc') enriched.sort((a, b) => b.min_price - a.min_price);
+    else if (filters.sort === 'sessions') enriched.sort((a, b) => b.total_sessions - a.total_sessions);
+
+    setExperts(enriched);
+    setLoading(false);
   }
 
   const updateFilter = (key: keyof FilterState, value: any) => {
