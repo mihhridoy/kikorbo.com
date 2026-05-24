@@ -9,9 +9,12 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <header className="py-4 px-6 border-b border-gray-100 bg-white">
         <Link href="/" className="flex items-center gap-2 w-fit">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600">
-            <span className="text-sm font-bold text-white">EL</span>
+            <span className="text-sm font-bold text-white">P</span>
           </div>
-          <span className="text-xl font-bold text-gray-900">{PLATFORM.name}</span>
+          <div className="flex flex-col leading-tight">
+            <span className="text-xl font-bold text-gray-900">{PLATFORM.name}</span>
+            <span className="text-[10px] text-gray-400 -mt-1">{PLATFORM.nameBn}</span>
+          </div>
         </Link>
       </header>
       <main className="flex-1 flex items-center justify-center px-4 py-12">

@@ -28,9 +28,12 @@ export function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600">
-              <span className="text-sm font-bold text-white">EL</span>
+              <span className="text-sm font-bold text-white">P</span>
             </div>
-            <span className="text-xl font-bold text-gray-900">{PLATFORM.name}</span>
+            <div className="flex flex-col leading-tight">
+              <span className="text-xl font-bold text-gray-900">{PLATFORM.name}</span>
+              <span className="text-[10px] text-gray-400 -mt-1">{PLATFORM.nameBn}</span>
+            </div>
           </Link>
 
           {/* Desktop Nav */}

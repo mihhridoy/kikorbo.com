@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     default: `${PLATFORM.name} — ${PLATFORM.taglineEn}`,
     template: `%s | ${PLATFORM.name}`,
   },
-  description: 'Bangladesh\'s first structured expert consultation platform. Book trusted experts for freelancing, BCS, study abroad, software career, business, and legal advice.',
+  description: 'Poramorshoo (পরামর্শ ডট কম) — Bangladesh\'s first structured expert consultation platform. Book trusted experts for freelancing, BCS, study abroad, software career, business, and legal advice.',
   keywords: ['expert consultation', 'Bangladesh', 'freelancing mentor', 'BCS guidance', 'IELTS help', 'online consultation'],
   authors: [{ name: PLATFORM.name }],
   openGraph: {

@@ -1,8 +1,43 @@
 -- =============================================================
--- ExpertLagbe — Demo Seed Data (10 Expert Profiles)
+-- Poramorshoo — Demo Seed Data (10 Expert Profiles + 3 demo login accounts)
 -- Run this AFTER 001_schema.sql in Supabase SQL Editor
 -- Safe to re-run: uses ON CONFLICT DO NOTHING
 -- =============================================================
+
+-- ─────────────────────────────────────────────────────────────
+-- DEMO LOGIN ACCOUNTS (password: demo1234)
+-- These match the "ডেমো অ্যাকাউন্ট" buttons on the login page
+-- ─────────────────────────────────────────────────────────────
+INSERT INTO auth.users (
+  id, instance_id, aud, role, email,
+  encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data,
+  created_at, updated_at, is_super_admin
+)
+VALUES
+  ('00000000-demo-0000-0000-000000000001', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+   'user@demo.poramorshoo.com',
+   crypt('demo1234', gen_salt('bf')), NOW(),
+   '{"provider":"email","providers":["email"]}', '{"full_name":"Demo User"}',
+   NOW(), NOW(), false),
+  ('00000000-demo-0000-0000-000000000002', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+   'expert@demo.poramorshoo.com',
+   crypt('demo1234', gen_salt('bf')), NOW(),
+   '{"provider":"email","providers":["email"]}', '{"full_name":"Demo Expert"}',
+   NOW(), NOW(), false),
+  ('00000000-demo-0000-0000-000000000003', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+   'admin@demo.poramorshoo.com',
+   crypt('demo1234', gen_salt('bf')), NOW(),
+   '{"provider":"email","providers":["email"]}', '{"full_name":"Demo Admin"}',
+   NOW(), NOW(), false)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO profiles (id, full_name, username, email, role, is_banned)
+VALUES
+  ('00000000-demo-0000-0000-000000000001', 'Demo User',   'demo_user',   'user@demo.poramorshoo.com',   'user',   false),
+  ('00000000-demo-0000-0000-000000000002', 'Demo Expert', 'demo_expert', 'expert@demo.poramorshoo.com', 'expert', false),
+  ('00000000-demo-0000-0000-000000000003', 'Demo Admin',  'demo_admin',  'admin@demo.poramorshoo.com',  'admin',  false)
+ON CONFLICT (id) DO NOTHING;
 
 -- ─────────────────────────────────────────────────────────────
 -- AUTH USERS (required because profiles.id FK → auth.users.id)
@@ -15,16 +50,16 @@ INSERT INTO auth.users (
   created_at, updated_at, is_super_admin
 )
 VALUES
-  ('11111111-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'rafiqul@demo.expertlagbe.com', '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Rafiqul Islam"}', NOW(), NOW(), false),
-  ('11111111-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'nusrat@demo.expertlagbe.com',   '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Nusrat Jahan"}',   NOW(), NOW(), false),
-  ('11111111-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'tanvir@demo.expertlagbe.com',   '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Tanvir Ahmed"}',   NOW(), NOW(), false),
-  ('11111111-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'sumaiya@demo.expertlagbe.com',  '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Sumaiya Khatun"}', NOW(), NOW(), false),
-  ('11111111-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'arif@demo.expertlagbe.com',     '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Arif Hossain"}',   NOW(), NOW(), false),
-  ('11111111-0000-0000-0000-000000000006', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'fatema@demo.expertlagbe.com',   '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Fatema Begum"}',   NOW(), NOW(), false),
-  ('11111111-0000-0000-0000-000000000007', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'sabbir@demo.expertlagbe.com',   '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Sabbir Rahman"}',  NOW(), NOW(), false),
-  ('11111111-0000-0000-0000-000000000008', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'mehrin@demo.expertlagbe.com',   '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Mehrin Akter"}',   NOW(), NOW(), false),
-  ('11111111-0000-0000-0000-000000000009', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'imran@demo.expertlagbe.com',    '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Imran Khan"}',     NOW(), NOW(), false),
-  ('11111111-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'roksana@demo.expertlagbe.com',  '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Roksana Parvin"}', NOW(), NOW(), false)
+  ('11111111-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'rafiqul@demo.poramorshoo.com', '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Rafiqul Islam"}', NOW(), NOW(), false),
+  ('11111111-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'nusrat@demo.poramorshoo.com',   '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Nusrat Jahan"}',   NOW(), NOW(), false),
+  ('11111111-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'tanvir@demo.poramorshoo.com',   '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Tanvir Ahmed"}',   NOW(), NOW(), false),
+  ('11111111-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'sumaiya@demo.poramorshoo.com',  '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Sumaiya Khatun"}', NOW(), NOW(), false),
+  ('11111111-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'arif@demo.poramorshoo.com',     '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Arif Hossain"}',   NOW(), NOW(), false),
+  ('11111111-0000-0000-0000-000000000006', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'fatema@demo.poramorshoo.com',   '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Fatema Begum"}',   NOW(), NOW(), false),
+  ('11111111-0000-0000-0000-000000000007', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'sabbir@demo.poramorshoo.com',   '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Sabbir Rahman"}',  NOW(), NOW(), false),
+  ('11111111-0000-0000-0000-000000000008', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'mehrin@demo.poramorshoo.com',   '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Mehrin Akter"}',   NOW(), NOW(), false),
+  ('11111111-0000-0000-0000-000000000009', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'imran@demo.poramorshoo.com',    '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Imran Khan"}',     NOW(), NOW(), false),
+  ('11111111-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'roksana@demo.poramorshoo.com',  '', NOW(), '{"provider":"email","providers":["email"]}', '{"full_name":"Roksana Parvin"}', NOW(), NOW(), false)
 ON CONFLICT (id) DO NOTHING;
 
 -- ─────────────────────────────────────────────────────────────
@@ -35,70 +70,70 @@ VALUES
   -- 1: Rafiqul Islam — Freelancing
   ('11111111-0000-0000-0000-000000000001',
    'Rafiqul Islam', 'rafiqul_islam',
-   'rafiqul@demo.expertlagbe.com', '01711234567',
+   'rafiqul@demo.poramorshoo.com', '01711234567',
    'https://ui-avatars.com/api/?name=Rafiqul+Islam&background=1a56db&color=fff&size=200&bold=true',
    'expert', false),
 
   -- 2: Nusrat Jahan — Study Abroad
   ('11111111-0000-0000-0000-000000000002',
    'Nusrat Jahan', 'nusrat_jahan',
-   'nusrat@demo.expertlagbe.com', '01812345678',
+   'nusrat@demo.poramorshoo.com', '01812345678',
    'https://ui-avatars.com/api/?name=Nusrat+Jahan&background=0e9f6e&color=fff&size=200&bold=true',
    'expert', false),
 
   -- 3: Tanvir Ahmed — Software Career
   ('11111111-0000-0000-0000-000000000003',
    'Tanvir Ahmed', 'tanvir_ahmed',
-   'tanvir@demo.expertlagbe.com', '01912345678',
+   'tanvir@demo.poramorshoo.com', '01912345678',
    'https://ui-avatars.com/api/?name=Tanvir+Ahmed&background=7e3af2&color=fff&size=200&bold=true',
    'expert', false),
 
   -- 4: Sumaiya Khatun — BCS
   ('11111111-0000-0000-0000-000000000004',
    'Sumaiya Khatun', 'sumaiya_khatun',
-   'sumaiya@demo.expertlagbe.com', '01611234567',
+   'sumaiya@demo.poramorshoo.com', '01611234567',
    'https://ui-avatars.com/api/?name=Sumaiya+Khatun&background=e3a008&color=fff&size=200&bold=true',
    'expert', false),
 
   -- 5: Arif Hossain — Business
   ('11111111-0000-0000-0000-000000000005',
    'Arif Hossain', 'arif_hossain',
-   'arif@demo.expertlagbe.com', '01511234567',
+   'arif@demo.poramorshoo.com', '01511234567',
    'https://ui-avatars.com/api/?name=Arif+Hossain&background=e74694&color=fff&size=200&bold=true',
    'expert', false),
 
   -- 6: Fatema Begum — Legal
   ('11111111-0000-0000-0000-000000000006',
    'Fatema Begum', 'fatema_begum',
-   'fatema@demo.expertlagbe.com', '01712345678',
+   'fatema@demo.poramorshoo.com', '01712345678',
    'https://ui-avatars.com/api/?name=Fatema+Begum&background=1c64f2&color=fff&size=200&bold=true',
    'expert', false),
 
   -- 7: Sabbir Rahman — Freelancing
   ('11111111-0000-0000-0000-000000000007',
    'Sabbir Rahman', 'sabbir_rahman',
-   'sabbir@demo.expertlagbe.com', '01811234567',
+   'sabbir@demo.poramorshoo.com', '01811234567',
    'https://ui-avatars.com/api/?name=Sabbir+Rahman&background=057a55&color=fff&size=200&bold=true',
    'expert', false),
 
   -- 8: Mehrin Akter — Study Abroad
   ('11111111-0000-0000-0000-000000000008',
    'Mehrin Akter', 'mehrin_akter',
-   'mehrin@demo.expertlagbe.com', '01911234567',
+   'mehrin@demo.poramorshoo.com', '01911234567',
    'https://ui-avatars.com/api/?name=Mehrin+Akter&background=c81e1e&color=fff&size=200&bold=true',
    'expert', false),
 
   -- 9: Imran Khan — Software Career
   ('11111111-0000-0000-0000-000000000009',
    'Imran Khan', 'imran_khan',
-   'imran@demo.expertlagbe.com', '01612345678',
+   'imran@demo.poramorshoo.com', '01612345678',
    'https://ui-avatars.com/api/?name=Imran+Khan&background=6875f5&color=fff&size=200&bold=true',
    'expert', false),
 
   -- 10: Roksana Parvin — BCS
   ('11111111-0000-0000-0000-000000000010',
    'Roksana Parvin', 'roksana_parvin',
-   'roksana@demo.expertlagbe.com', '01512345678',
+   'roksana@demo.poramorshoo.com', '01512345678',
    'https://ui-avatars.com/api/?name=Roksana+Parvin&background=0694a2&color=fff&size=200&bold=true',
    'expert', false)
 

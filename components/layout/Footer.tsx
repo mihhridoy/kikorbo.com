@@ -9,9 +9,12 @@ export function Footer() {
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-3">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600">
-                <span className="text-sm font-bold text-white">EL</span>
+                <span className="text-sm font-bold text-white">P</span>
               </div>
-              <span className="text-lg font-bold text-white">{PLATFORM.name}</span>
+              <div className="flex flex-col leading-tight">
+                <span className="text-lg font-bold text-white">{PLATFORM.name}</span>
+                <span className="text-[10px] text-gray-400 -mt-0.5">{PLATFORM.nameBn}</span>
+              </div>
             </div>
             <p className="text-sm">{PLATFORM.tagline}</p>
             <p className="text-sm mt-1">Bangladesh&apos;s trusted expert consultation platform.</p>
@@ -50,7 +53,7 @@ export function Footer() {
             <ul className="space-y-2">
               <li><Link href="/login" className="text-sm hover:text-white transition-colors">লগইন</Link></li>
               <li><Link href="/signup" className="text-sm hover:text-white transition-colors">রেজিস্ট্রেশন</Link></li>
-              <li><a href="mailto:support@expertlagbe.com.bd" className="text-sm hover:text-white transition-colors">যোগাযোগ করুন</a></li>
+              <li><a href="mailto:support@poramorshoo.com" className="text-sm hover:text-white transition-colors">যোগাযোগ করুন</a></li>
             </ul>
           </div>
         </div>

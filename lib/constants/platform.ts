@@ -1,5 +1,6 @@
 export const PLATFORM = {
-  name: 'ExpertLagbe',
+  name: 'Poramorshoo',
+  nameBn: 'পরামর্শ ডট কম',
   tagline: 'বিশ্বস্ত বিশেষজ্ঞের সাথে পরামর্শ করুন',
   taglineEn: 'Book trusted experts instantly',
   commissionRate: 0.18,

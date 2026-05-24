@@ -3,11 +3,38 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, FlaskConical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createClient } from '@/lib/supabase/client';
+
+const DEMO_ACCOUNTS = [
+  {
+    label: 'ব্যবহারকারী',
+    sublabel: 'Demo User',
+    email: 'user@demo.poramorshoo.com',
+    password: 'demo1234',
+    color: 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100',
+    dot: 'bg-blue-500',
+  },
+  {
+    label: 'বিশেষজ্ঞ',
+    sublabel: 'Demo Expert',
+    email: 'expert@demo.poramorshoo.com',
+    password: 'demo1234',
+    color: 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100',
+    dot: 'bg-green-500',
+  },
+  {
+    label: 'অ্যাডমিন',
+    sublabel: 'Demo Admin',
+    email: 'admin@demo.poramorshoo.com',
+    password: 'demo1234',
+    color: 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100',
+    dot: 'bg-purple-500',
+  },
+];
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,6 +44,12 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const fillDemo = (acc: (typeof DEMO_ACCOUNTS)[0]) => {
+    setEmail(acc.email);
+    setPassword(acc.password);
+    setError('');
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +86,33 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-full max-w-md">
+    <div className="w-full max-w-md space-y-4">
+      {/* Demo Login Panel */}
+      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <FlaskConical className="h-4 w-4 text-amber-600" />
+          <span className="text-sm font-semibold text-amber-800">ডেমো অ্যাকাউন্ট দিয়ে চেষ্টা করুন</span>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {DEMO_ACCOUNTS.map((acc) => (
+            <button
+              key={acc.sublabel}
+              type="button"
+              onClick={() => fillDemo(acc)}
+              className={`flex flex-col items-center gap-1 rounded-xl border p-3 text-center transition-colors ${acc.color}`}
+            >
+              <span className={`h-2 w-2 rounded-full ${acc.dot}`} />
+              <span className="text-xs font-bold leading-tight">{acc.label}</span>
+              <span className="text-[10px] opacity-70">{acc.sublabel}</span>
+            </button>
+          ))}
+        </div>
+        <p className="mt-3 text-[11px] text-amber-600 text-center">
+          বোতামে ক্লিক করলে ফর্মে স্বয়ংক্রিয়ভাবে পূর্ণ হবে
+        </p>
+      </div>
+
+      {/* Login Form */}
       <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-8">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">আবার স্বাগতম!</h1>

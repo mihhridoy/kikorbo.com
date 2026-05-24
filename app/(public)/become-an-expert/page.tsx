@@ -26,7 +26,7 @@ export default function BecomeAnExpertPage() {
       </section>
 
       <section className="py-16 max-w-5xl mx-auto px-4">
-        <h2 className="text-2xl font-bold text-center text-gray-900 mb-10">কেন ExpertLagbe-এ যোগ দেবেন?</h2>
+        <h2 className="text-2xl font-bold text-center text-gray-900 mb-10">কেন Poramorshoo-তে যোগ দেবেন?</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {BENEFITS.map(({ icon: Icon, title, desc }) => (
             <div key={title} className="rounded-xl bg-white border border-gray-100 p-6 shadow-sm text-center">
