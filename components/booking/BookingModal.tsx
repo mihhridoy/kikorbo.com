@@ -61,6 +61,15 @@ export function BookingModal({ expertId, expertName, selectedPackage, onClose }:
       return;
     }
 
+    // Demo users skip real booking API and go straight to demo consultation room
+    if (user.id?.startsWith('demo-')) {
+      onClose();
+      router.push(
+        `/consultation/demo?expert=${encodeURIComponent(expertName)}&sessionType=${sessionType}&duration=${selectedPackage.duration_minutes}&package=${encodeURIComponent(selectedPackage.title)}`
+      );
+      return;
+    }
+
     setLoading(true);
     setError('');
 
