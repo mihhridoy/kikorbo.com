@@ -4,6 +4,20 @@ import type { NextRequest } from 'next/server';
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
+
+  // Allow demo logins to bypass Supabase session checks
+  const demoRole = req.cookies.get('demo_role')?.value;
+  if (demoRole) {
+    const path = req.nextUrl.pathname;
+    if (path.startsWith('/admin/') && demoRole !== 'admin') {
+      return NextResponse.redirect(new URL('/', req.url));
+    }
+    if (path.startsWith('/expert/') && demoRole !== 'expert' && demoRole !== 'admin') {
+      return NextResponse.redirect(new URL('/dashboard', req.url));
+    }
+    return res;
+  }
+
   const supabase = createMiddlewareClient({ req, res });
   const { data: { session } } = await supabase.auth.getSession();
 

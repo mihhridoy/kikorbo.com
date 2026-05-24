@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createClient } from '@/lib/supabase/client';
+import { useAuthStore } from '@/store/authStore';
 
 const DEMO_ACCOUNTS = [
   {
@@ -15,34 +16,43 @@ const DEMO_ACCOUNTS = [
     sublabel: 'Demo User',
     email: 'user@demo.poramorshoo.com',
     password: 'demo1234',
+    role: 'user' as const,
     color: 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100',
     dot: 'bg-blue-500',
+    redirect: '/dashboard',
   },
   {
     label: 'বিশেষজ্ঞ',
     sublabel: 'Demo Expert',
     email: 'expert@demo.poramorshoo.com',
     password: 'demo1234',
+    role: 'expert' as const,
     color: 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100',
     dot: 'bg-green-500',
+    redirect: '/expert/dashboard',
   },
   {
     label: 'অ্যাডমিন',
     sublabel: 'Demo Admin',
     email: 'admin@demo.poramorshoo.com',
     password: 'demo1234',
+    role: 'admin' as const,
     color: 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100',
     dot: 'bg-purple-500',
+    redirect: '/admin/dashboard',
   },
 ];
+
+const DEMO_EMAILS = new Set(DEMO_ACCOUNTS.map((a) => a.email));
 
 export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
+  const { setUser, setProfile, setLoading } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLocalLoading] = useState(false);
   const [error, setError] = useState('');
 
   const fillDemo = (acc: (typeof DEMO_ACCOUNTS)[0]) => {
@@ -51,10 +61,49 @@ export default function LoginPage() {
     setError('');
   };
 
+  const loginAsDemo = (acc: (typeof DEMO_ACCOUNTS)[0]) => {
+    // Set a cookie so middleware allows access to protected routes
+    document.cookie = `demo_role=${acc.role}; path=/; max-age=3600`;
+    setLoading(false);
+    setUser({
+      id: `demo-${acc.role}`,
+      email: acc.email,
+      app_metadata: {},
+      user_metadata: { full_name: acc.sublabel },
+      aud: 'authenticated',
+      created_at: new Date().toISOString(),
+    } as any);
+    setProfile({
+      id: `demo-${acc.role}`,
+      full_name: acc.sublabel,
+      username: `demo_${acc.role}`,
+      email: acc.email,
+      phone: null,
+      avatar_url: null,
+      role: acc.role,
+      is_banned: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+    router.push(acc.redirect);
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setLocalLoading(true);
     setError('');
+
+    // Demo shortcut — bypass Supabase for demo accounts
+    if (DEMO_EMAILS.has(email)) {
+      const acc = DEMO_ACCOUNTS.find((a) => a.email === email)!;
+      if (password === acc.password) {
+        loginAsDemo(acc);
+        return;
+      }
+      setError('ডেমো পাসওয়ার্ড ভুল। সঠিক পাসওয়ার্ড: demo1234');
+      setLocalLoading(false);
+      return;
+    }
 
     try {
       const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
@@ -74,7 +123,7 @@ export default function LoginPage() {
     } catch (err: any) {
       setError(err?.message || 'কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন।');
     } finally {
-      setLoading(false);
+      setLocalLoading(false);
     }
   };
 
@@ -98,7 +147,7 @@ export default function LoginPage() {
             <button
               key={acc.sublabel}
               type="button"
-              onClick={() => fillDemo(acc)}
+              onClick={() => loginAsDemo(acc)}
               className={`flex flex-col items-center gap-1 rounded-xl border p-3 text-center transition-colors ${acc.color}`}
             >
               <span className={`h-2 w-2 rounded-full ${acc.dot}`} />
@@ -108,7 +157,7 @@ export default function LoginPage() {
           ))}
         </div>
         <p className="mt-3 text-[11px] text-amber-600 text-center">
-          বোতামে ক্লিক করলে ফর্মে স্বয়ংক্রিয়ভাবে পূর্ণ হবে
+          ক্লিক করলেই সরাসরি ড্যাশবোর্ডে প্রবেশ পাবেন
         </p>
       </div>
 
