@@ -13,40 +13,49 @@ import { BookingModal } from '@/components/booking/BookingModal';
 import { createClient } from '@/lib/supabase/client';
 import { Skeleton } from '@/components/shared/LoadingSkeleton';
 import { formatBDT } from '@/lib/utils/currency';
+import type { DEMO_EXPERTS } from '@/lib/constants/demoExperts';
 
 interface ExpertProfileClientProps {
   expertId: string;
+  demoData?: (typeof DEMO_EXPERTS)[number] | null;
 }
 
-export function ExpertProfileClient({ expertId }: ExpertProfileClientProps) {
-  const [expert, setExpert] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
-  const [packages, setPackages] = useState<any[]>([]);
-  const [skills, setSkills] = useState<string[]>([]);
-  const [reviews, setReviews] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+export function ExpertProfileClient({ expertId, demoData }: ExpertProfileClientProps) {
+  const [expert, setExpert] = useState<any>(demoData ?? null);
+  const [profile, setProfile] = useState<any>(demoData ? { full_name: demoData.full_name, avatar_url: demoData.avatar_url, username: demoData.username } : null);
+  const [packages, setPackages] = useState<any[]>(demoData?.packages ?? []);
+  const [skills, setSkills] = useState<string[]>(demoData?.skills ?? []);
+  const [reviews, setReviews] = useState<any[]>(
+    (demoData?.reviews ?? []).map((r) => ({ ...r, profiles: { full_name: r.reviewer_name, avatar_url: null } }))
+  );
+  const [loading, setLoading] = useState(!demoData);
   const [bookingPackage, setBookingPackage] = useState<any>(null);
   const supabase = createClient();
 
   useEffect(() => {
+    if (demoData) return; // skip Supabase when demo data provided
     fetchExpertData();
   }, [expertId]);
 
   async function fetchExpertData() {
-    const [expertRes, packagesRes, skillsRes, reviewsRes] = await Promise.all([
-      supabase.from('experts').select('*, profiles(*)').eq('id', expertId).single(),
-      supabase.from('packages').select('*').eq('expert_id', expertId).eq('is_active', true).order('duration_minutes'),
-      supabase.from('expert_skills').select('skill').eq('expert_id', expertId),
-      supabase.from('reviews').select('*, profiles(full_name, avatar_url)').eq('expert_id', expertId).eq('is_hidden', false).order('created_at', { ascending: false }).limit(10),
-    ]);
+    try {
+      const [expertRes, packagesRes, skillsRes, reviewsRes] = await Promise.all([
+        supabase.from('experts').select('*, profiles(*)').eq('id', expertId).single(),
+        supabase.from('packages').select('*').eq('expert_id', expertId).eq('is_active', true).order('duration_minutes'),
+        supabase.from('expert_skills').select('skill').eq('expert_id', expertId),
+        supabase.from('reviews').select('*, profiles(full_name, avatar_url)').eq('expert_id', expertId).eq('is_hidden', false).order('created_at', { ascending: false }).limit(10),
+      ]);
 
-    if (expertRes.data) {
-      setExpert(expertRes.data);
-      setProfile((expertRes.data as any).profiles);
+      if (expertRes.data) {
+        setExpert(expertRes.data);
+        setProfile((expertRes.data as any).profiles);
+      }
+      setPackages(packagesRes.data || []);
+      setSkills((skillsRes.data || []).map((s: any) => s.skill));
+      setReviews(reviewsRes.data || []);
+    } catch (err) {
+      console.error(err);
     }
-    setPackages(packagesRes.data || []);
-    setSkills((skillsRes.data || []).map((s: any) => s.skill));
-    setReviews(reviewsRes.data || []);
     setLoading(false);
   }
 
