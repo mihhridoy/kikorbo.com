@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useSessionTimer } from '@/hooks/useTimer';
 import { useChat } from '@/hooks/useChat';
+import { useAgora } from '@/hooks/useAgora';
 import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils/cn';
@@ -29,8 +30,6 @@ export function ConsultationRoomClient({ roomId }: ConsultationRoomClientProps) 
   const [accessDenied, setAccessDenied] = useState(false);
   const [showChat, setShowChat] = useState(true);
   const [message, setMessage] = useState('');
-  const [micOn, setMicOn] = useState(true);
-  const [camOn, setCamOn] = useState(true);
   const [showEndModal, setShowEndModal] = useState(false);
   const [rating, setRating] = useState(0);
   const [reviewComment, setReviewComment] = useState('');
@@ -38,6 +37,15 @@ export function ConsultationRoomClient({ roomId }: ConsultationRoomClientProps) 
 
   const { messages, sendMessage } = useChat(roomId);
   const timer = useSessionTimer(room?.started_at || null, booking?.duration_minutes || 30);
+
+  const sessionType = (booking?.session_type as 'chat' | 'voice' | 'video') || 'video';
+  const agora = useAgora({
+    appId: process.env.NEXT_PUBLIC_AGORA_APP_ID,
+    channel: room?.agora_channel,
+    token: isExpert ? room?.agora_token_expert : room?.agora_token_user,
+    sessionType,
+    active: room?.status === 'active',
+  });
 
   useEffect(() => {
     if (!user) return;
@@ -258,13 +266,54 @@ export function ConsultationRoomClient({ roomId }: ConsultationRoomClientProps) 
               <h2 className="text-xl font-bold">সেশন সম্পন্ন হয়েছে</h2>
               <p className="text-gray-400 text-sm mt-1">ধন্যবাদ!</p>
             </div>
-          ) : (
+          ) : sessionType === 'chat' ? (
             <div className="w-full h-full flex items-center justify-center">
-              <div className="text-center text-gray-500">
-                <Video className="h-16 w-16 mx-auto mb-3 opacity-30" />
-                <p className="text-sm">ভিডিও সংযোগ সক্রিয় হচ্ছে...</p>
-                <p className="text-xs mt-1 opacity-60">(Agora credentials প্রয়োজন)</p>
+              <div className="text-center text-gray-400">
+                <MessageSquare className="h-16 w-16 mx-auto mb-3 opacity-40" />
+                <p className="text-sm">চ্যাট সেশন চলছে — বাম পাশে বার্তা লিখুন</p>
               </div>
+            </div>
+          ) : (
+            <div className="w-full h-full relative">
+              {/* Remote (other party) — fills the area */}
+              <div ref={agora.remoteVideoRef} className="absolute inset-0 bg-black" />
+              {!agora.remoteJoined && (
+                <div className="absolute inset-0 flex items-center justify-center text-center text-gray-400">
+                  <div>
+                    <div className="h-20 w-20 rounded-full bg-gray-700 flex items-center justify-center mx-auto mb-4 text-3xl text-white">
+                      {otherParty?.full_name?.charAt(0)}
+                    </div>
+                    <p className="text-sm">{otherParty?.full_name} এর সংযোগের অপেক্ষায়...</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Local (self) — picture-in-picture, video sessions only */}
+              {agora.hasVideo && (
+                <div className="absolute bottom-4 right-4 w-32 h-44 md:w-40 md:h-56 rounded-xl overflow-hidden border-2 border-white/20 bg-gray-800 shadow-lg">
+                  <div ref={agora.localVideoRef} className="w-full h-full" />
+                  {!agora.camOn && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-800 text-white text-xs">
+                      ক্যামেরা বন্ধ
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {sessionType === 'voice' && (
+                <div className="absolute inset-0 flex items-center justify-center text-center text-gray-300 pointer-events-none">
+                  <div>
+                    <Mic className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">অডিও সেশন চলছে</p>
+                  </div>
+                </div>
+              )}
+
+              {agora.error && (
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-red-600/90 text-white text-xs px-3 py-1.5 rounded-full">
+                  {agora.error}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -272,18 +321,22 @@ export function ConsultationRoomClient({ roomId }: ConsultationRoomClientProps) 
         {/* Controls */}
         {!isSessionEnded && (
           <div className="flex items-center justify-center gap-4 py-5 bg-gray-800">
-            <button
-              onClick={() => setMicOn(!micOn)}
-              className={cn('p-3 rounded-full', micOn ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-red-500 text-white')}
-            >
-              {micOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
-            </button>
-            <button
-              onClick={() => setCamOn(!camOn)}
-              className={cn('p-3 rounded-full', camOn ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-red-500 text-white')}
-            >
-              {camOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
-            </button>
+            {sessionType !== 'chat' && (
+              <button
+                onClick={agora.toggleMic}
+                className={cn('p-3 rounded-full', agora.micOn ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-red-500 text-white')}
+              >
+                {agora.micOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+              </button>
+            )}
+            {sessionType === 'video' && (
+              <button
+                onClick={agora.toggleCam}
+                className={cn('p-3 rounded-full', agora.camOn ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-red-500 text-white')}
+              >
+                {agora.camOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
+              </button>
+            )}
             {isExpert && isSessionActive && (
               <button
                 onClick={() => setShowEndModal(true)}

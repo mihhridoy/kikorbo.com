@@ -26,15 +26,14 @@ export async function POST(req: Request) {
   if (existingRoom) return NextResponse.json({ roomId: existingRoom.id });
 
   const channelName = `room_${bookingId.replace(/-/g, '')}`;
-  const userUid = Math.floor(Math.random() * 1000000);
-  const expertUid = Math.floor(Math.random() * 1000000) + 1000000;
 
   let userToken = '';
   let expertToken = '';
 
+  // uid 0 = wildcard token, valid for any uid the client auto-assigns on join
   if (process.env.AGORA_APP_CERTIFICATE && process.env.AGORA_APP_CERTIFICATE !== 'placeholder_agora_certificate') {
-    userToken = generateAgoraToken(channelName, userUid, 'publisher');
-    expertToken = generateAgoraToken(channelName, expertUid, 'publisher');
+    userToken = generateAgoraToken(channelName, 0, 'publisher');
+    expertToken = generateAgoraToken(channelName, 0, 'publisher');
   }
 
   const { data: room, error } = await db
