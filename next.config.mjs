@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['localhost', 'supabase.co', 'avatars.githubusercontent.com', 'lh3.googleusercontent.com'],
+    domains: ['localhost', 'supabase.co', 'avatars.githubusercontent.com', 'lh3.googleusercontent.com', 'ui-avatars.com'],
     remotePatterns: [
       {
         protocol: 'https',
