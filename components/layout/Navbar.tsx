@@ -9,9 +9,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { PLATFORM } from '@/lib/constants/platform';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
+import { LanguageToggle } from '@/components/layout/LanguageToggle';
 
 export function Navbar() {
   const { user, profile, signOut } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -39,18 +42,19 @@ export function Navbar() {
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-6">
             <Link href="/experts" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-              বিশেষজ্ঞ খুঁজুন
+              {t('nav.findExperts')}
             </Link>
             <Link href="/how-it-works" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-              কীভাবে কাজ করে
+              {t('nav.howItWorks')}
             </Link>
             <Link href="/become-an-expert" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-              বিশেষজ্ঞ হোন
+              {t('nav.becomeExpert')}
             </Link>
           </div>
 
           {/* Desktop Right */}
           <div className="hidden md:flex items-center gap-3">
+            <LanguageToggle />
             {user ? (
               <>
                 <Link href="/messages" className="relative p-2 text-gray-500 hover:text-gray-900">
@@ -76,13 +80,13 @@ export function Navbar() {
                         <p className="text-xs text-gray-500 truncate">{profile?.email}</p>
                       </div>
                       <Link href={dashboardHref} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50" onClick={() => setProfileOpen(false)}>
-                        <LayoutDashboard className="h-4 w-4" /> Dashboard
+                        <LayoutDashboard className="h-4 w-4" /> {t('nav.dashboard')}
                       </Link>
                       <Link href="/settings" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50" onClick={() => setProfileOpen(false)}>
-                        <Settings className="h-4 w-4" /> Settings
+                        <Settings className="h-4 w-4" /> {t('nav.settings')}
                       </Link>
                       <button onClick={() => { signOut(); setProfileOpen(false); }} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50">
-                        <LogOut className="h-4 w-4" /> Sign Out
+                        <LogOut className="h-4 w-4" /> {t('nav.signOut')}
                       </button>
                     </div>
                   )}
@@ -91,37 +95,40 @@ export function Navbar() {
             ) : (
               <>
                 <Button variant="ghost" size="sm" onClick={() => router.push('/login')}>
-                  লগইন
+                  {t('nav.login')}
                 </Button>
                 <Button size="sm" onClick={() => router.push('/signup')}>
-                  শুরু করুন
+                  {t('nav.getStarted')}
                 </Button>
               </>
             )}
           </div>
 
           {/* Mobile Menu Button */}
-          <button className="md:hidden p-2" onClick={() => setMobileOpen(!mobileOpen)}>
-            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+          <div className="flex items-center gap-2 md:hidden">
+            <LanguageToggle />
+            <button className="p-2" onClick={() => setMobileOpen(!mobileOpen)}>
+              {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Mobile Menu */}
       {mobileOpen && (
         <div className="md:hidden border-t border-gray-100 bg-white py-3 px-4 space-y-1">
-          <Link href="/experts" className="block py-2 text-sm font-medium text-gray-700" onClick={() => setMobileOpen(false)}>বিশেষজ্ঞ খুঁজুন</Link>
-          <Link href="/how-it-works" className="block py-2 text-sm font-medium text-gray-700" onClick={() => setMobileOpen(false)}>কীভাবে কাজ করে</Link>
-          <Link href="/become-an-expert" className="block py-2 text-sm font-medium text-gray-700" onClick={() => setMobileOpen(false)}>বিশেষজ্ঞ হোন</Link>
+          <Link href="/experts" className="block py-2 text-sm font-medium text-gray-700" onClick={() => setMobileOpen(false)}>{t('nav.findExperts')}</Link>
+          <Link href="/how-it-works" className="block py-2 text-sm font-medium text-gray-700" onClick={() => setMobileOpen(false)}>{t('nav.howItWorks')}</Link>
+          <Link href="/become-an-expert" className="block py-2 text-sm font-medium text-gray-700" onClick={() => setMobileOpen(false)}>{t('nav.becomeExpert')}</Link>
           {user ? (
             <>
-              <Link href={dashboardHref} className="block py-2 text-sm font-medium text-gray-700" onClick={() => setMobileOpen(false)}>Dashboard</Link>
-              <button onClick={() => { signOut(); setMobileOpen(false); }} className="block py-2 text-sm font-medium text-red-600">Sign Out</button>
+              <Link href={dashboardHref} className="block py-2 text-sm font-medium text-gray-700" onClick={() => setMobileOpen(false)}>{t('nav.dashboard')}</Link>
+              <button onClick={() => { signOut(); setMobileOpen(false); }} className="block py-2 text-sm font-medium text-red-600">{t('nav.signOut')}</button>
             </>
           ) : (
             <div className="flex gap-2 pt-2">
-              <Button variant="outline" size="sm" className="flex-1" onClick={() => { router.push('/login'); setMobileOpen(false); }}>লগইন</Button>
-              <Button size="sm" className="flex-1" onClick={() => { router.push('/signup'); setMobileOpen(false); }}>শুরু করুন</Button>
+              <Button variant="outline" size="sm" className="flex-1" onClick={() => { router.push('/login'); setMobileOpen(false); }}>{t('nav.login')}</Button>
+              <Button size="sm" className="flex-1" onClick={() => { router.push('/signup'); setMobileOpen(false); }}>{t('nav.getStarted')}</Button>
             </div>
           )}
         </div>
