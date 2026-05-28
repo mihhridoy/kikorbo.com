@@ -14,9 +14,10 @@ export function createClient() {
       order: () => queryBuilder,
       limit: async () => emptyResult,
       single: async () => nullResult,
-      insert: async () => nullResult,
-      update: async () => nullResult,
-      delete: async () => nullResult,
+      insert: () => queryBuilder,
+      update: () => queryBuilder,
+      delete: () => queryBuilder,
+      upsert: () => queryBuilder,
       then: (resolve: any) => Promise.resolve(emptyResult).then(resolve),
     };
     return {
