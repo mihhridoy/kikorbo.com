@@ -1,6 +1,7 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { createServiceClient } from '@/lib/supabase/server';
 
 export async function POST(req: Request) {
   const supabase = createRouteHandlerClient({ cookies });
@@ -9,7 +10,9 @@ export async function POST(req: Request) {
 
   const { bookingId } = await req.json();
 
-  const { data: booking } = await supabase
+  const db = createServiceClient();
+
+  const { data: booking } = await db
     .from('bookings')
     .select('*, profiles(email, full_name, phone)')
     .eq('id', bookingId)
@@ -19,7 +22,7 @@ export async function POST(req: Request) {
 
   if (!booking) return NextResponse.json({ error: 'Booking not found or not confirmed' }, { status: 404 });
 
-  const { data: payment } = await supabase.from('payments').insert({
+  const { data: payment } = await db.from('payments').insert({
     booking_id: bookingId,
     user_id: session.user.id,
     amount_bdt: booking.price_bdt,
@@ -68,9 +71,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ redirectUrl: data.GatewayPageURL });
     }
 
-    // In sandbox/placeholder mode, redirect to a mock success
     return NextResponse.json({ redirectUrl: `${appUrl}/api/payments/sslcommerz/webhook?paymentId=${payment?.id}&bookingId=${bookingId}&status=success&val_id=DEMO` });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ redirectUrl: `${appUrl}/bookings/${bookingId}?payment=failed` });
   }
 }

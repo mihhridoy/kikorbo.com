@@ -1,6 +1,7 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { createServiceClient } from '@/lib/supabase/server';
 import { sendBookingConfirmedEmail } from '@/lib/email/resend';
 
 export async function POST(req: Request) {
@@ -13,8 +14,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
   }
 
+  const db = createServiceClient();
+
   // Verify the caller is the expert for this booking
-  const { data: booking } = await supabase
+  const { data: booking } = await db
     .from('bookings')
     .select('*, experts!inner(user_id)')
     .eq('id', bookingId)
@@ -33,7 +36,7 @@ export async function POST(req: Request) {
 
   const newStatus = action === 'accept' ? 'confirmed' : 'cancelled';
 
-  const { error } = await supabase
+  const { error } = await db
     .from('bookings')
     .update({ status: newStatus, cancelled_by: action === 'reject' ? 'expert' : null })
     .eq('id', bookingId);
@@ -41,8 +44,7 @@ export async function POST(req: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   if (action === 'accept') {
-    // Notify user
-    await supabase.from('notifications').insert({
+    await db.from('notifications').insert({
       user_id: booking.user_id,
       title: 'বুকিং নিশ্চিত হয়েছে',
       body: 'বিশেষজ্ঞ আপনার বুকিং গ্রহণ করেছেন। এখন পেমেন্ট করুন।',
@@ -51,8 +53,8 @@ export async function POST(req: Request) {
     });
 
     try {
-      const { data: userProfile } = await supabase.from('profiles').select('email, full_name').eq('id', booking.user_id).single();
-      const { data: expertProfile } = await supabase.from('profiles').select('full_name').eq('id', session.user.id).single();
+      const { data: userProfile } = await db.from('profiles').select('email, full_name').eq('id', booking.user_id).single();
+      const { data: expertProfile } = await db.from('profiles').select('full_name').eq('id', session.user.id).single();
       if (userProfile?.email && expertProfile?.full_name) {
         await sendBookingConfirmedEmail(userProfile.email, expertProfile.full_name, booking.scheduled_at);
       }

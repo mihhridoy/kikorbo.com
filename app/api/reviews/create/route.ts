@@ -1,6 +1,7 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { createServiceClient } from '@/lib/supabase/server';
 
 export async function POST(req: Request) {
   const supabase = createRouteHandlerClient({ cookies });
@@ -13,7 +14,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid review data' }, { status: 400 });
   }
 
-  const { data: booking } = await supabase
+  const db = createServiceClient();
+
+  const { data: booking } = await db
     .from('bookings')
     .select('expert_id, status, user_id')
     .eq('id', bookingId)
@@ -23,7 +26,7 @@ export async function POST(req: Request) {
   if (!booking) return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
   if (booking.status !== 'completed') return NextResponse.json({ error: 'Booking not completed' }, { status: 400 });
 
-  const { error: reviewError } = await supabase.from('reviews').upsert({
+  const { error: reviewError } = await db.from('reviews').upsert({
     booking_id: bookingId,
     reviewer_id: session.user.id,
     expert_id: booking.expert_id,
@@ -34,15 +37,15 @@ export async function POST(req: Request) {
   if (reviewError) return NextResponse.json({ error: reviewError.message }, { status: 500 });
 
   // Update expert avg_rating
-  const { data: reviews } = await supabase
+  const { data: reviews } = await db
     .from('reviews')
     .select('rating')
     .eq('expert_id', booking.expert_id)
     .eq('is_hidden', false);
 
-  if (reviews) {
-    const avg = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
-    await supabase.from('experts').update({
+  if (reviews && reviews.length > 0) {
+    const avg = reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviews.length;
+    await db.from('experts').update({
       avg_rating: Math.round(avg * 100) / 100,
       total_reviews: reviews.length,
     }).eq('id', booking.expert_id);

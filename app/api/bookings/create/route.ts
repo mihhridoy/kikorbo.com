@@ -1,6 +1,7 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { createServiceClient } from '@/lib/supabase/server';
 import { calculateCommission } from '@/lib/utils/commission';
 import { sendBookingRequestEmail } from '@/lib/email/resend';
 
@@ -19,8 +20,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
 
+  const db = createServiceClient();
+
   // Validate expert is approved
-  const { data: expert } = await supabase
+  const { data: expert } = await db
     .from('experts')
     .select('verification_status, user_id')
     .eq('id', expertId)
@@ -31,7 +34,7 @@ export async function POST(req: Request) {
   }
 
   // Validate package is active and belongs to expert
-  const { data: pkg } = await supabase
+  const { data: pkg } = await db
     .from('packages')
     .select('*')
     .eq('id', packageId)
@@ -46,7 +49,7 @@ export async function POST(req: Request) {
   // Calculate commission server-side (never trust client)
   const { platformFee, expertEarnings } = calculateCommission(pkg.price_bdt);
 
-  const { data: booking, error } = await supabase
+  const { data: booking, error } = await db
     .from('bookings')
     .insert({
       user_id: session.user.id,
@@ -69,7 +72,7 @@ export async function POST(req: Request) {
   }
 
   // Send notification to expert
-  await supabase.from('notifications').insert({
+  await db.from('notifications').insert({
     user_id: expert.user_id,
     title: 'নতুন বুকিং রিকোয়েস্ট',
     body: `একটি নতুন বুকিং রিকোয়েস্ট পেয়েছেন। ২ ঘণ্টার মধ্যে সাড়া দিন।`,
@@ -79,8 +82,8 @@ export async function POST(req: Request) {
 
   // Send email (non-blocking)
   try {
-    const { data: expertProfile } = await supabase.from('profiles').select('email, full_name').eq('id', expert.user_id).single();
-    const { data: userProfile } = await supabase.from('profiles').select('full_name').eq('id', session.user.id).single();
+    const { data: expertProfile } = await db.from('profiles').select('email, full_name').eq('id', expert.user_id).single();
+    const { data: userProfile } = await db.from('profiles').select('full_name').eq('id', session.user.id).single();
     if (expertProfile?.email && userProfile?.full_name) {
       await sendBookingRequestEmail(expertProfile.email, userProfile.full_name, scheduledAt);
     }
