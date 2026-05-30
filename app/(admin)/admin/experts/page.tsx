@@ -7,8 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { createClient } from '@/lib/supabase/client';
 import { sendExpertVerifiedEmail, sendExpertRejectedEmail } from '@/lib/email/resend';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 export default function AdminExpertsPage() {
+  const { t } = useLanguage();
   const [experts, setExperts] = useState<any[]>([]);
   const [filter, setFilter] = useState<'pending' | 'approved' | 'rejected'>('pending');
   const [loading, setLoading] = useState(true);
@@ -35,7 +37,7 @@ export default function AdminExpertsPage() {
 
     await supabase.from('experts').update({
       verification_status: action,
-      rejection_reason: action === 'rejected' ? (reason || 'ডকুমেন্ট অসম্পূর্ণ') : null,
+      rejection_reason: action === 'rejected' ? (reason || t('admin.experts.defaultRejectionReason')) : null,
     }).eq('id', expertId);
 
     if (action === 'approved') {
@@ -43,7 +45,7 @@ export default function AdminExpertsPage() {
       await supabase.from('expert_wallets').upsert({ expert_id: expertId });
       await sendExpertVerifiedEmail(email);
     } else {
-      await sendExpertRejectedEmail(email, reason || 'ডকুমেন্ট অসম্পূর্ণ');
+      await sendExpertRejectedEmail(email, reason || t('admin.experts.defaultRejectionReason'));
     }
 
     await fetchExperts();
@@ -51,28 +53,28 @@ export default function AdminExpertsPage() {
   }
 
   const STATUS_MAP = {
-    pending: { label: 'অপেক্ষমাণ', color: 'warning' },
-    approved: { label: 'অনুমোদিত', color: 'success' },
-    rejected: { label: 'প্রত্যাখ্যাত', color: 'destructive' },
+    pending: { label: t('admin.experts.statusPending'), color: 'warning' },
+    approved: { label: t('admin.experts.statusApproved'), color: 'success' },
+    rejected: { label: t('admin.experts.statusRejected'), color: 'destructive' },
   };
 
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">বিশেষজ্ঞ যাচাই</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('admin.experts.title')}</h1>
         <div className="flex gap-2">
           {(['pending', 'approved', 'rejected'] as const).map((f) => (
             <Button key={f} size="sm" variant={filter === f ? 'default' : 'outline'} onClick={() => setFilter(f)}>
-              {f === 'pending' ? 'অপেক্ষমাণ' : f === 'approved' ? 'অনুমোদিত' : 'প্রত্যাখ্যাত'}
+              {f === 'pending' ? t('admin.experts.filterPending') : f === 'approved' ? t('admin.experts.filterApproved') : t('admin.experts.filterRejected')}
             </Button>
           ))}
         </div>
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400">লোড হচ্ছে...</div>
+        <div className="text-center py-12 text-gray-400">{t('admin.experts.loading')}</div>
       ) : experts.length === 0 ? (
-        <div className="text-center py-12 text-gray-400">কোনো বিশেষজ্ঞ পাওয়া যায়নি</div>
+        <div className="text-center py-12 text-gray-400">{t('admin.experts.empty')}</div>
       ) : (
         <div className="space-y-4">
           {experts.map((expert) => (
@@ -104,13 +106,13 @@ export default function AdminExpertsPage() {
 
                   {(expert.expert_documents || []).length > 0 && (
                     <div className="mt-3 space-y-1">
-                      <p className="text-xs font-semibold text-gray-500">ডকুমেন্টসমূহ:</p>
+                      <p className="text-xs font-semibold text-gray-500">{t('admin.experts.documents')}</p>
                       <div className="flex flex-wrap gap-2">
                         {expert.expert_documents.map((doc: any) => (
                           <a key={doc.id} href={doc.file_url} target="_blank" rel="noopener noreferrer"
                              className="flex items-center gap-1 text-xs text-primary-600 hover:underline border border-primary-200 rounded-md px-2 py-1">
                             <Eye className="h-3 w-3" />
-                            {doc.type === 'nid_front' ? 'NID (সামনে)' : doc.type === 'nid_back' ? 'NID (পেছনে)' : doc.type === 'certificate' ? 'সার্টিফিকেট' : 'পোর্টফোলিও'}
+                            {doc.type === 'nid_front' ? t('admin.experts.nidFront') : doc.type === 'nid_back' ? t('admin.experts.nidBack') : doc.type === 'certificate' ? t('admin.experts.certificate') : t('admin.experts.portfolio')}
                           </a>
                         ))}
                       </div>
@@ -126,12 +128,12 @@ export default function AdminExpertsPage() {
                       disabled={actionLoading === expert.id}
                       onClick={() => handleAction(expert.id, 'approved', expert.user_id, expert.profiles?.email)}
                     >
-                      <CheckCircle className="h-4 w-4 mr-1" /> অনুমোদন
+                      <CheckCircle className="h-4 w-4 mr-1" /> {t('admin.experts.approve')}
                     </Button>
                     <div>
                       <input
                         type="text"
-                        placeholder="প্রত্যাখ্যানের কারণ..."
+                        placeholder={t('admin.experts.rejectionPlaceholder')}
                         className="mb-1 h-7 w-full rounded border border-gray-200 px-2 text-xs focus:outline-none"
                         value={rejectionReason[expert.id] || ''}
                         onChange={(e) => setRejectionReason((prev) => ({ ...prev, [expert.id]: e.target.value }))}
@@ -143,7 +145,7 @@ export default function AdminExpertsPage() {
                         disabled={actionLoading === expert.id}
                         onClick={() => handleAction(expert.id, 'rejected', expert.user_id, expert.profiles?.email)}
                       >
-                        <XCircle className="h-4 w-4 mr-1" /> প্রত্যাখ্যান
+                        <XCircle className="h-4 w-4 mr-1" /> {t('admin.experts.reject')}
                       </Button>
                     </div>
                   </div>

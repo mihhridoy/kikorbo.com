@@ -12,9 +12,11 @@ import { X } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { CATEGORIES, PLATFORM } from '@/lib/constants/platform';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 export default function ExpertProfilePage() {
   const { profile } = useAuth();
+  const { t, lang } = useLanguage();
   const [expert, setExpert] = useState<any>(null);
   const [skills, setSkills] = useState<string[]>([]);
   const [newSkill, setNewSkill] = useState('');
@@ -93,8 +95,8 @@ export default function ExpertProfilePage() {
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <div className="flex justify-between items-start mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">প্রোফাইল সম্পাদনা</h1>
-        {saved && <span className="text-sm text-green-600 font-medium">✓ সংরক্ষিত হয়েছে</span>}
+        <h1 className="text-2xl font-bold text-gray-900">{t('expert.profile.title')}</h1>
+        {saved && <span className="text-sm text-green-600 font-medium">{t('expert.profile.saved')}</span>}
       </div>
 
       <div className="space-y-6">
@@ -108,21 +110,25 @@ export default function ExpertProfilePage() {
             <p className="font-semibold text-gray-900">{form.full_name}</p>
             <p className="text-sm text-gray-500">{profile?.email}</p>
             <Badge className="mt-1" variant={expert?.verification_status === 'approved' ? 'verified' : 'warning'}>
-              {expert?.verification_status === 'approved' ? '✓ যাচাইকৃত' : expert?.verification_status === 'pending' ? 'যাচাই অপেক্ষমাণ' : 'অনুমোদিত নয়'}
+              {expert?.verification_status === 'approved'
+                ? t('expert.profile.verified')
+                : expert?.verification_status === 'pending'
+                ? t('expert.profile.verificationPending')
+                : t('expert.profile.notApproved')}
             </Badge>
           </div>
         </div>
 
         {/* Personal Info */}
         <div className="rounded-xl bg-white border border-gray-100 p-5 shadow-sm space-y-4">
-          <h2 className="font-bold text-gray-900">ব্যক্তিগত তথ্য</h2>
+          <h2 className="font-bold text-gray-900">{t('expert.profile.personalInfo')}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>পূর্ণ নাম</Label>
+              <Label>{t('expert.profile.fullName')}</Label>
               <Input className="mt-1" value={form.full_name} onChange={(e) => setForm((p) => ({ ...p, full_name: e.target.value }))} />
             </div>
             <div>
-              <Label>ফোন</Label>
+              <Label>{t('expert.profile.phone')}</Label>
               <Input className="mt-1" value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} />
             </div>
           </div>
@@ -130,10 +136,10 @@ export default function ExpertProfilePage() {
 
         {/* Expert Info */}
         <div className="rounded-xl bg-white border border-gray-100 p-5 shadow-sm space-y-4">
-          <h2 className="font-bold text-gray-900">বিশেষজ্ঞ তথ্য</h2>
+          <h2 className="font-bold text-gray-900">{t('expert.profile.expertInfo')}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>বিভাগ</Label>
+              <Label>{t('expert.profile.category')}</Label>
               <Select value={form.category} onValueChange={(v) => setForm((p) => ({ ...p, category: v }))}>
                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -144,23 +150,23 @@ export default function ExpertProfilePage() {
               </Select>
             </div>
             <div>
-              <Label>ভাষাসমূহ</Label>
+              <Label>{t('expert.profile.languages')}</Label>
               <Input className="mt-1" value={form.languages} onChange={(e) => setForm((p) => ({ ...p, languages: e.target.value }))} placeholder="Bengali, English" />
             </div>
           </div>
           <div>
-            <Label>ট্যাগলাইন (সর্বোচ্চ ১০০ অক্ষর)</Label>
+            <Label>{t('expert.profile.tagline')}</Label>
             <Input className="mt-1" value={form.tagline} onChange={(e) => setForm((p) => ({ ...p, tagline: e.target.value }))} maxLength={100} />
           </div>
           <div>
-            <Label>বিস্তারিত পরিচয়</Label>
+            <Label>{t('expert.profile.bio')}</Label>
             <Textarea className="mt-1" rows={5} value={form.bio} onChange={(e) => setForm((p) => ({ ...p, bio: e.target.value }))} />
           </div>
         </div>
 
         {/* Skills */}
         <div className="rounded-xl bg-white border border-gray-100 p-5 shadow-sm">
-          <h2 className="font-bold text-gray-900 mb-3">দক্ষতা ({skills.length}/{PLATFORM.maxSkillsPerExpert})</h2>
+          <h2 className="font-bold text-gray-900 mb-3">{t('expert.profile.skills')} ({skills.length}/{PLATFORM.maxSkillsPerExpert})</h2>
           <div className="flex flex-wrap gap-2 mb-3">
             {skills.map((skill) => (
               <Badge key={skill} variant="secondary" className="pr-1.5">
@@ -171,14 +177,14 @@ export default function ExpertProfilePage() {
           </div>
           {skills.length < PLATFORM.maxSkillsPerExpert && (
             <div className="flex gap-2">
-              <Input placeholder="নতুন দক্ষতা যোগ করুন" value={newSkill} onChange={(e) => setNewSkill(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addSkill()} />
-              <Button variant="outline" onClick={addSkill}>যোগ করুন</Button>
+              <Input placeholder={t('expert.profile.addSkillPlaceholder')} value={newSkill} onChange={(e) => setNewSkill(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addSkill()} />
+              <Button variant="outline" onClick={addSkill}>{t('expert.profile.add')}</Button>
             </div>
           )}
         </div>
 
         <Button className="w-full" size="lg" onClick={handleSave} disabled={saving}>
-          {saving ? 'সংরক্ষণ হচ্ছে...' : 'পরিবর্তন সংরক্ষণ করুন'}
+          {saving ? t('expert.profile.saving') : t('expert.profile.saveChanges')}
         </Button>
       </div>
     </div>

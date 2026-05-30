@@ -6,8 +6,10 @@ import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/client';
 import { formatBDT } from '@/lib/utils/currency';
 import { sendPayoutProcessedEmail } from '@/lib/email/resend';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 export default function AdminPayoutsPage() {
+  const { t } = useLanguage();
   const [payouts, setPayouts] = useState<any[]>([]);
   const [filter, setFilter] = useState<'pending' | 'processing' | 'paid' | 'rejected'>('pending');
   const [loading, setLoading] = useState(true);
@@ -48,20 +50,20 @@ export default function AdminPayoutsPage() {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">পেআউট অনুরোধ</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('admin.payouts.title')}</h1>
         <div className="flex gap-2">
           {(['pending', 'processing', 'paid', 'rejected'] as const).map((f) => (
             <Button key={f} size="sm" variant={filter === f ? 'default' : 'outline'} onClick={() => setFilter(f)}>
-              {{pending: 'অপেক্ষমাণ', processing: 'প্রক্রিয়াধীন', paid: 'পরিশোধিত', rejected: 'প্রত্যাখ্যাত'}[f]}
+              {{pending: t('admin.payouts.filterPending'), processing: t('admin.payouts.filterProcessing'), paid: t('admin.payouts.filterPaid'), rejected: t('admin.payouts.filterRejected')}[f]}
             </Button>
           ))}
         </div>
       </div>
 
-      {loading ? <div className="text-center py-12 text-gray-400">লোড হচ্ছে...</div> : (
+      {loading ? <div className="text-center py-12 text-gray-400">{t('admin.payouts.loading')}</div> : (
         <div className="space-y-4">
           {payouts.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">কোনো রেকর্ড নেই</div>
+            <div className="text-center py-12 text-gray-400">{t('admin.payouts.empty')}</div>
           ) : (
             payouts.map((payout) => (
               <div key={payout.id} className="rounded-xl bg-white border border-gray-100 p-5 shadow-sm">
@@ -78,27 +80,27 @@ export default function AdminPayoutsPage() {
                       {payout.method === 'bkash' ? 'bKash' : 'Bank'}: {payout.account_name} — {payout.account_number}
                     </p>
                     <p className="text-xs text-gray-400 mt-0.5">
-                      অনুরোধ: {new Date(payout.requested_at).toLocaleDateString('bn-BD')} • {payout.experts?.profiles?.email}
+                      {t('admin.payouts.requestedPrefix')} {new Date(payout.requested_at).toLocaleDateString('bn-BD')} • {payout.experts?.profiles?.email}
                     </p>
-                    {payout.admin_note && <p className="text-xs text-gray-500 mt-1">নোট: {payout.admin_note}</p>}
+                    {payout.admin_note && <p className="text-xs text-gray-500 mt-1">{t('admin.payouts.notePrefix')} {payout.admin_note}</p>}
                   </div>
 
                   {filter === 'pending' && (
                     <div className="flex flex-col gap-2 shrink-0 min-w-[200px]">
                       <input
                         type="text"
-                        placeholder="অ্যাডমিন নোট (ঐচ্ছিক)"
+                        placeholder={t('admin.payouts.adminNotePlaceholder')}
                         className="h-8 rounded-lg border border-gray-200 px-2 text-xs focus:outline-none"
                         value={notes[payout.id] || ''}
                         onChange={(e) => setNotes((prev) => ({ ...prev, [payout.id]: e.target.value }))}
                       />
                       <Button size="sm" className="bg-green-600 hover:bg-green-700 text-xs"
                         onClick={() => handleAction(payout.id, 'paid', payout.experts?.profiles?.email, payout.amount_bdt)}>
-                        ✓ পরিশোধ করুন
+                        {t('admin.payouts.pay')}
                       </Button>
                       <Button size="sm" variant="outline" className="text-red-600 border-red-200 text-xs"
                         onClick={() => handleAction(payout.id, 'rejected', payout.experts?.profiles?.email, payout.amount_bdt)}>
-                        ✗ প্রত্যাখ্যান
+                        {t('admin.payouts.reject')}
                       </Button>
                     </div>
                   )}

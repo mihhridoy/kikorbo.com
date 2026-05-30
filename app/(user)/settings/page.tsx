@@ -7,9 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 export default function SettingsPage() {
   const { profile, user } = useAuth();
+  const { t } = useLanguage();
   const [form, setForm] = useState({ full_name: '', phone: '' });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -34,8 +36,8 @@ export default function SettingsPage() {
   return (
     <div className="p-6 max-w-2xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">সেটিংস</h1>
-        {saved && <span className="text-sm text-green-600">✓ সংরক্ষিত</span>}
+        <h1 className="text-2xl font-bold text-gray-900">{t('user.settings.title')}</h1>
+        {saved && <span className="text-sm text-green-600">{t('user.settings.saved')}</span>}
       </div>
 
       <div className="space-y-6">
@@ -54,26 +56,26 @@ export default function SettingsPage() {
 
           <form onSubmit={handleSave} className="space-y-4">
             <div>
-              <Label>পূর্ণ নাম</Label>
+              <Label>{t('user.settings.fullName')}</Label>
               <Input className="mt-1" value={form.full_name} onChange={(e) => setForm((p) => ({ ...p, full_name: e.target.value }))} />
             </div>
             <div>
-              <Label>ফোন নম্বর</Label>
+              <Label>{t('user.settings.phone')}</Label>
               <Input className="mt-1" placeholder="01XXXXXXXXX" value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} />
             </div>
             <div>
-              <Label>ইমেইল</Label>
+              <Label>{t('user.settings.email')}</Label>
               <Input className="mt-1 bg-gray-50" value={profile?.email || ''} disabled />
-              <p className="text-xs text-gray-400 mt-1">ইমেইল পরিবর্তন করা যাবে না</p>
+              <p className="text-xs text-gray-400 mt-1">{t('user.settings.emailLocked')}</p>
             </div>
-            <Button type="submit" disabled={saving}>{saving ? 'সংরক্ষণ হচ্ছে...' : 'পরিবর্তন সংরক্ষণ করুন'}</Button>
+            <Button type="submit" disabled={saving}>{saving ? t('user.settings.saving') : t('user.settings.saveChanges')}</Button>
           </form>
         </div>
 
         <div className="rounded-xl bg-white border border-red-100 p-6 shadow-sm">
-          <h2 className="font-bold text-red-600 mb-2">অ্যাকাউন্ট মুছুন</h2>
-          <p className="text-sm text-gray-500 mb-4">আপনার সমস্ত ডেটা স্থায়ীভাবে মুছে যাবে।</p>
-          <Button variant="destructive" size="sm">অ্যাকাউন্ট মুছুন</Button>
+          <h2 className="font-bold text-red-600 mb-2">{t('user.settings.deleteAccount')}</h2>
+          <p className="text-sm text-gray-500 mb-4">{t('user.settings.deleteDesc')}</p>
+          <Button variant="destructive" size="sm">{t('user.settings.deleteAccount')}</Button>
         </div>
       </div>
     </div>

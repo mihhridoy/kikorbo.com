@@ -10,9 +10,11 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { formatBDT } from '@/lib/utils/currency';
 import { Skeleton } from '@/components/shared/LoadingSkeleton';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 export default function ExpertDashboardPage() {
   const { profile } = useAuth();
+  const { t, lang } = useLanguage();
   const [expert, setExpert] = useState<any>(null);
   const [pendingBookings, setPendingBookings] = useState<any[]>([]);
   const [todayBookings, setTodayBookings] = useState<any[]>([]);
@@ -83,25 +85,25 @@ export default function ExpertDashboardPage() {
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">বিশেষজ্ঞ ড্যাশবোর্ড</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('expert.dashboard.title')}</h1>
           {expert?.verification_status === 'pending' && (
             <div className="mt-2 rounded-lg bg-yellow-50 border border-yellow-200 px-3 py-2 text-sm text-yellow-700">
-              ⏳ আপনার প্রোফাইল যাচাইয়ের অপেক্ষায় আছে। ১-৩ কার্যদিবসে সম্পন্ন হবে।
+              {t('expert.dashboard.verificationPending')}
             </div>
           )}
         </div>
         <Button variant="outline" size="sm" asChild>
-          <Link href="/expert/profile">প্রোফাইল সম্পাদনা</Link>
+          <Link href="/expert/profile">{t('expert.dashboard.editProfile')}</Link>
         </Button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: 'অপেক্ষমাণ রিকোয়েস্ট', value: pendingBookings.length, icon: Clock, color: 'text-yellow-600 bg-yellow-50' },
-          { label: 'আজকের সেশন', value: todayBookings.length, icon: Video, color: 'text-blue-600 bg-blue-50' },
-          { label: 'এই মাসের আয়', value: formatBDT(stats.thisMonthEarnings), icon: DollarSign, color: 'text-green-600 bg-green-50' },
-          { label: 'মোট সেশন', value: stats.totalSessions, icon: Users, color: 'text-purple-600 bg-purple-50' },
+          { label: t('expert.dashboard.stat.pendingRequests'), value: pendingBookings.length, icon: Clock, color: 'text-yellow-600 bg-yellow-50' },
+          { label: t('expert.dashboard.stat.todaySessions'), value: todayBookings.length, icon: Video, color: 'text-blue-600 bg-blue-50' },
+          { label: t('expert.dashboard.stat.thisMonthEarnings'), value: formatBDT(stats.thisMonthEarnings), icon: DollarSign, color: 'text-green-600 bg-green-50' },
+          { label: t('expert.dashboard.stat.totalSessions'), value: stats.totalSessions, icon: Users, color: 'text-purple-600 bg-purple-50' },
         ].map(({ label, value, icon: Icon, color }) => (
           <Card key={label}>
             <CardContent className="p-4 flex items-center gap-3">
@@ -121,12 +123,12 @@ export default function ExpertDashboardPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Clock className="h-4 w-4 text-yellow-600" />
-              অপেক্ষমাণ রিকোয়েস্ট
+              {t('expert.dashboard.pendingRequests')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {pendingBookings.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-4">কোনো অপেক্ষমাণ রিকোয়েস্ট নেই</p>
+              <p className="text-sm text-gray-400 text-center py-4">{t('expert.dashboard.noPendingRequests')}</p>
             ) : (
               pendingBookings.map((booking) => (
                 <div key={booking.id} className="rounded-lg border border-gray-100 p-3">
@@ -134,10 +136,10 @@ export default function ExpertDashboardPage() {
                     <div>
                       <p className="font-medium text-sm text-gray-900">{booking.profiles?.full_name}</p>
                       <p className="text-xs text-gray-500 mt-0.5">
-                        {booking.packages?.title} • {booking.packages?.duration_minutes} মিনিট • {formatBDT(booking.price_bdt)}
+                        {booking.packages?.title} • {booking.packages?.duration_minutes} {t('expert.dashboard.minutes')} • {formatBDT(booking.price_bdt)}
                       </p>
                       <p className="text-xs text-gray-400 mt-0.5">
-                        {new Date(booking.scheduled_at).toLocaleString('bn-BD', { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        {new Date(booking.scheduled_at).toLocaleString(lang === 'bn' ? 'bn-BD' : 'en-US', { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                     <div className="flex gap-1.5 shrink-0">
@@ -148,7 +150,7 @@ export default function ExpertDashboardPage() {
                         disabled={actionLoading === booking.id}
                         onClick={() => handleBookingAction(booking.id, 'reject')}
                       >
-                        <XCircle className="h-3 w-3 mr-1" /> না
+                        <XCircle className="h-3 w-3 mr-1" /> {t('expert.dashboard.no')}
                       </Button>
                       <Button
                         size="sm"
@@ -156,7 +158,7 @@ export default function ExpertDashboardPage() {
                         disabled={actionLoading === booking.id}
                         onClick={() => handleBookingAction(booking.id, 'accept')}
                       >
-                        <CheckCircle className="h-3 w-3 mr-1" /> হ্যাঁ
+                        <CheckCircle className="h-3 w-3 mr-1" /> {t('expert.dashboard.yes')}
                       </Button>
                     </div>
                   </div>
@@ -171,25 +173,25 @@ export default function ExpertDashboardPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Video className="h-4 w-4 text-blue-600" />
-              আজকের সেশন
+              {t('expert.dashboard.todaySessions')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {todayBookings.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-4">আজকে কোনো সেশন নেই</p>
+              <p className="text-sm text-gray-400 text-center py-4">{t('expert.dashboard.noTodaySessions')}</p>
             ) : (
               todayBookings.map((booking) => (
                 <div key={booking.id} className="rounded-lg border border-gray-100 p-3 flex items-center justify-between gap-2">
                   <div>
                     <p className="font-medium text-sm text-gray-900">{booking.profiles?.full_name}</p>
-                    <p className="text-xs text-gray-500">{new Date(booking.scheduled_at).toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' })}</p>
+                    <p className="text-xs text-gray-500">{new Date(booking.scheduled_at).toLocaleTimeString(lang === 'bn' ? 'bn-BD' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</p>
                   </div>
                   {booking.consultation_rooms?.id && canEnterRoom(booking.scheduled_at) ? (
                     <Button size="sm" asChild className="bg-green-600 hover:bg-green-700">
-                      <Link href={`/consultation/${booking.consultation_rooms.id}`}>রুমে যোগ দিন</Link>
+                      <Link href={`/consultation/${booking.consultation_rooms.id}`}>{t('expert.dashboard.joinRoom')}</Link>
                     </Button>
                   ) : (
-                    <Badge variant="secondary">অপেক্ষা করুন</Badge>
+                    <Badge variant="secondary">{t('expert.dashboard.wait')}</Badge>
                   )}
                 </div>
               ))
@@ -202,16 +204,16 @@ export default function ExpertDashboardPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-green-600" />
-              আয়ের সারসংক্ষেপ
+              {t('expert.dashboard.earningsSummary')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {[
-                { label: 'উপলব্ধ', value: formatBDT(wallet?.available_balance || 0), color: 'text-green-600' },
-                { label: 'মুলতবি (হোল্ড)', value: formatBDT(wallet?.pending_balance || 0), color: 'text-yellow-600' },
-                { label: 'মোট আয়', value: formatBDT(wallet?.total_earned || 0), color: 'text-gray-900' },
-                { label: 'মোট উত্তোলন', value: formatBDT(wallet?.total_withdrawn || 0), color: 'text-gray-500' },
+                { label: t('expert.dashboard.wallet.available'), value: formatBDT(wallet?.available_balance || 0), color: 'text-green-600' },
+                { label: t('expert.dashboard.wallet.pending'), value: formatBDT(wallet?.pending_balance || 0), color: 'text-yellow-600' },
+                { label: t('expert.dashboard.wallet.totalEarned'), value: formatBDT(wallet?.total_earned || 0), color: 'text-gray-900' },
+                { label: t('expert.dashboard.wallet.totalWithdrawn'), value: formatBDT(wallet?.total_withdrawn || 0), color: 'text-gray-500' },
               ].map(({ label, value, color }) => (
                 <div key={label} className="text-center rounded-xl bg-gray-50 p-4">
                   <p className={`text-xl font-bold ${color}`}>{value}</p>
@@ -221,10 +223,10 @@ export default function ExpertDashboardPage() {
             </div>
             <div className="flex gap-2 mt-4">
               <Button asChild className="flex-1">
-                <Link href="/expert/earnings">পেআউট করুন</Link>
+                <Link href="/expert/earnings">{t('expert.dashboard.payout')}</Link>
               </Button>
               <Button variant="outline" asChild className="flex-1">
-                <Link href="/expert/earnings">লেনদেন দেখুন</Link>
+                <Link href="/expert/earnings">{t('expert.dashboard.viewTransactions')}</Link>
               </Button>
             </div>
           </CardContent>

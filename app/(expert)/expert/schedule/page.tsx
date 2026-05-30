@@ -4,20 +4,31 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
-const DAYS = ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহঃ', 'শুক্র', 'শনি'];
 const TIME_SLOTS = Array.from({ length: 14 }, (_, i) => `${(i + 8).toString().padStart(2, '0')}:00`);
 
 type SlotGrid = Record<number, Record<string, string | null>>; // dayOfWeek -> time -> slotId or null
 
 export default function ExpertSchedulePage() {
   const { profile } = useAuth();
+  const { t, lang } = useLanguage();
   const [expert, setExpert] = useState<any>(null);
   const [slots, setSlots] = useState<SlotGrid>({});
   const [saving, setSaving] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
   const [savedMsg, setSavedMsg] = useState('');
   const supabase = createClient();
+
+  const DAYS = [
+    t('expert.schedule.day.sun'),
+    t('expert.schedule.day.mon'),
+    t('expert.schedule.day.tue'),
+    t('expert.schedule.day.wed'),
+    t('expert.schedule.day.thu'),
+    t('expert.schedule.day.fri'),
+    t('expert.schedule.day.sat'),
+  ];
 
   useEffect(() => {
     if (!profile?.id) return;
@@ -81,7 +92,7 @@ export default function ExpertSchedulePage() {
     if (newSlots.length > 0) await supabase.from('availability_slots').insert(newSlots);
     await supabase.from('experts').update({ is_online: isOnline }).eq('id', expert.id);
 
-    setSavedMsg('সময়সূচি সংরক্ষিত হয়েছে!');
+    setSavedMsg(t('expert.schedule.savedMsg'));
     setTimeout(() => setSavedMsg(''), 3000);
     setSaving(false);
   };
@@ -90,8 +101,8 @@ export default function ExpertSchedulePage() {
     <div className="p-6 max-w-5xl mx-auto">
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">সময়সূচি</h1>
-          <p className="text-sm text-gray-500 mt-1">আপনার উপলব্ধ সময় নির্ধারণ করুন</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('expert.schedule.title')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t('expert.schedule.subtitle')}</p>
         </div>
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-2 cursor-pointer">
@@ -102,7 +113,7 @@ export default function ExpertSchedulePage() {
               <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${isOnline ? 'translate-x-5' : 'translate-x-0.5'}`} />
             </div>
             <span className="text-sm font-medium text-gray-700">
-              {isOnline ? '● অনলাইন' : '○ অফলাইন'}
+              {isOnline ? t('expert.schedule.online') : t('expert.schedule.offline')}
             </span>
           </label>
         </div>
@@ -116,7 +127,7 @@ export default function ExpertSchedulePage() {
         <table className="w-full min-w-[600px]">
           <thead>
             <tr className="border-b border-gray-100">
-              <th className="p-3 text-xs text-gray-400 font-normal text-left w-16">সময়</th>
+              <th className="p-3 text-xs text-gray-400 font-normal text-left w-16">{t('expert.schedule.time')}</th>
               {DAYS.map((d) => (
                 <th key={d} className="p-3 text-xs font-semibold text-gray-600 text-center">{d}</th>
               ))}
@@ -147,9 +158,9 @@ export default function ExpertSchedulePage() {
       </div>
 
       <div className="mt-4 flex items-center justify-between">
-        <p className="text-xs text-gray-400">সবুজ = উপলব্ধ। ক্লিক করে টগল করুন।</p>
+        <p className="text-xs text-gray-400">{t('expert.schedule.hint')}</p>
         <Button onClick={handleSave} disabled={saving}>
-          {saving ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ করুন'}
+          {saving ? t('expert.schedule.saving') : t('expert.schedule.save')}
         </Button>
       </div>
     </div>

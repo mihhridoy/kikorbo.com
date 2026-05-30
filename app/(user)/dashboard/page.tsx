@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { formatBDT } from '@/lib/utils/currency';
 import { Skeleton } from '@/components/shared/LoadingSkeleton';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'warning',
@@ -21,18 +22,9 @@ const STATUS_COLORS: Record<string, string> = {
   disputed: 'destructive',
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  pending: 'অপেক্ষমাণ',
-  confirmed: 'নিশ্চিত',
-  paid: 'পেমেন্ট হয়েছে',
-  in_progress: 'চলমান',
-  completed: 'সম্পন্ন',
-  cancelled: 'বাতিল',
-  disputed: 'বিতর্কিত',
-};
-
 export default function UserDashboardPage() {
   const { profile } = useAuth();
+  const { t } = useLanguage();
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
@@ -71,20 +63,20 @@ export default function UserDashboardPage() {
       {/* Welcome Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">
-          স্বাগতম, {profile?.full_name?.split(' ')[0]}! 👋
+          {t('user.dashboard.welcome')}, {profile?.full_name?.split(' ')[0]}! 👋
         </h1>
-        <p className="text-gray-500 text-sm mt-1">আজকের অবস্থা দেখুন</p>
+        <p className="text-gray-500 text-sm mt-1">{t('user.dashboard.todayStatus')}</p>
       </div>
 
       {/* Live Session Banner */}
       {liveBooking && (
         <div className="mb-6 rounded-xl bg-green-600 text-white p-4 flex items-center justify-between">
           <div>
-            <p className="font-bold">● সেশন চলমান আছে!</p>
-            <p className="text-sm text-green-100">{(liveBooking as any).experts?.profiles?.full_name}-এর সাথে</p>
+            <p className="font-bold">{t('user.dashboard.sessionLive')}</p>
+            <p className="text-sm text-green-100">{(liveBooking as any).experts?.profiles?.full_name}{t('user.dashboard.withExpertSuffix')}</p>
           </div>
           <Button className="bg-white text-green-700 hover:bg-green-50" asChild>
-            <Link href={`/consultation/${liveBooking.consultation_room_id}`}>রুমে যোগ দিন</Link>
+            <Link href={`/consultation/${liveBooking.consultation_room_id}`}>{t('user.dashboard.joinRoom')}</Link>
           </Button>
         </div>
       )}
@@ -92,14 +84,14 @@ export default function UserDashboardPage() {
       {/* Quick Search */}
       <div className="mb-6 relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <Input placeholder="বিশেষজ্ঞ খুঁজুন..." className="pl-9 bg-white" />
+        <Input placeholder={t('user.dashboard.searchExperts')} className="pl-9 bg-white" />
       </div>
 
       {/* Upcoming Bookings */}
       <div className="mb-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-bold text-gray-900">আসন্ন সেশন</h2>
-          <Link href="/bookings" className="text-primary-600 text-sm hover:underline">সব দেখুন →</Link>
+          <h2 className="text-lg font-bold text-gray-900">{t('user.dashboard.upcomingSessions')}</h2>
+          <Link href="/bookings" className="text-primary-600 text-sm hover:underline">{t('user.dashboard.viewAll')}</Link>
         </div>
 
         {loading ? (
@@ -109,9 +101,9 @@ export default function UserDashboardPage() {
         ) : upcomingBookings.length === 0 ? (
           <div className="rounded-xl bg-white border border-gray-100 p-8 text-center shadow-sm">
             <Calendar className="mx-auto h-10 w-10 text-gray-300 mb-3" />
-            <p className="text-gray-600 font-medium">কোনো আসন্ন সেশন নেই</p>
+            <p className="text-gray-600 font-medium">{t('user.dashboard.noUpcoming')}</p>
             <Button className="mt-3" asChild>
-              <Link href="/experts">বিশেষজ্ঞ বুক করুন</Link>
+              <Link href="/experts">{t('user.dashboard.bookExpert')}</Link>
             </Button>
           </div>
         ) : (
@@ -127,14 +119,14 @@ export default function UserDashboardPage() {
                     <Clock className="h-3 w-3" />
                     <span>{getTimeDisplay(booking.scheduled_at)}</span>
                     <span>•</span>
-                    <span>{(booking as any).packages?.duration_minutes} মিনিট</span>
+                    <span>{(booking as any).packages?.duration_minutes} {t('user.dashboard.minutes')}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <Badge variant={STATUS_COLORS[booking.status] as any}>{STATUS_LABELS[booking.status]}</Badge>
+                  <Badge variant={STATUS_COLORS[booking.status] as any}>{t(`user.status.${booking.status}`)}</Badge>
                   {booking.status === 'confirmed' && (
                     <Button size="sm" asChild>
-                      <Link href={`/bookings/${booking.id}`}>পেমেন্ট করুন</Link>
+                      <Link href={`/bookings/${booking.id}`}>{t('user.dashboard.pay')}</Link>
                     </Button>
                   )}
                 </div>
@@ -147,10 +139,10 @@ export default function UserDashboardPage() {
       {/* Quick Actions */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'বিশেষজ্ঞ খুঁজুন', href: '/experts', icon: Search },
-          { label: 'সব বুকিং', href: '/bookings', icon: Calendar },
-          { label: 'বার্তা', href: '/messages', icon: ArrowRight },
-          { label: 'ওয়ালেট', href: '/wallet', icon: ArrowRight },
+          { label: t('user.dashboard.action.findExperts'), href: '/experts', icon: Search },
+          { label: t('user.dashboard.action.allBookings'), href: '/bookings', icon: Calendar },
+          { label: t('user.dashboard.action.messages'), href: '/messages', icon: ArrowRight },
+          { label: t('user.dashboard.action.wallet'), href: '/wallet', icon: ArrowRight },
         ].map(({ label, href, icon: Icon }) => (
           <Link
             key={href}

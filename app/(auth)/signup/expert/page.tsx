@@ -9,10 +9,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { createClient } from '@/lib/supabase/client';
 import { CATEGORIES } from '@/lib/constants/platform';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 export default function ExpertSignupPage() {
   const router = useRouter();
   const supabase = createClient();
+  const { t } = useLanguage();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -71,7 +73,7 @@ export default function ExpertSignupPage() {
 
       router.push('/expert/dashboard?welcome=1');
     } catch (err: any) {
-      setError(err.message || 'নিবন্ধন ব্যর্থ হয়েছে');
+      setError(err.message || t('auth.expert.error.failed'));
     } finally {
       setLoading(false);
     }
@@ -81,8 +83,8 @@ export default function ExpertSignupPage() {
     <div className="w-full max-w-2xl">
       <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-8">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">বিশেষজ্ঞ হিসেবে যোগ দিন</h1>
-          <p className="mt-1 text-gray-500 text-sm">আপনার দক্ষতা শেয়ার করুন এবং আয় করুন</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('auth.expert.title')}</h1>
+          <p className="mt-1 text-gray-500 text-sm">{t('auth.expert.subtitle')}</p>
         </div>
 
         {/* Progress */}
@@ -94,39 +96,39 @@ export default function ExpertSignupPage() {
 
         {step === 1 && (
           <div className="space-y-4">
-            <h2 className="font-semibold text-gray-800">ব্যক্তিগত তথ্য</h2>
+            <h2 className="font-semibold text-gray-800">{t('auth.expert.step1.heading')}</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>পূর্ণ নাম</Label>
-                <Input className="mt-1" placeholder="আপনার নাম" value={form.fullName} onChange={(e) => update('fullName', e.target.value)} />
+                <Label>{t('auth.expert.fullName')}</Label>
+                <Input className="mt-1" placeholder={t('auth.expert.namePlaceholder')} value={form.fullName} onChange={(e) => update('fullName', e.target.value)} />
               </div>
               <div>
-                <Label>ফোন নম্বর</Label>
+                <Label>{t('auth.expert.phone')}</Label>
                 <Input className="mt-1" placeholder="01XXXXXXXXX" value={form.phone} onChange={(e) => update('phone', e.target.value)} />
               </div>
             </div>
             <div>
-              <Label>ইমেইল</Label>
+              <Label>{t('auth.expert.email')}</Label>
               <Input className="mt-1" type="email" placeholder="your@email.com" value={form.email} onChange={(e) => update('email', e.target.value)} />
             </div>
             <div>
-              <Label>পাসওয়ার্ড</Label>
-              <Input className="mt-1" type="password" placeholder="কমপক্ষে ৮ অক্ষর" value={form.password} onChange={(e) => update('password', e.target.value)} />
+              <Label>{t('auth.expert.password')}</Label>
+              <Input className="mt-1" type="password" placeholder={t('auth.expert.passwordPlaceholder')} value={form.password} onChange={(e) => update('password', e.target.value)} />
             </div>
             <Button className="w-full" onClick={() => setStep(2)} disabled={!form.fullName || !form.email || !form.password}>
-              পরবর্তী
+              {t('auth.expert.next')}
             </Button>
           </div>
         )}
 
         {step === 2 && (
           <div className="space-y-4">
-            <h2 className="font-semibold text-gray-800">বিশেষজ্ঞ প্রোফাইল</h2>
+            <h2 className="font-semibold text-gray-800">{t('auth.expert.step2.heading')}</h2>
             <div>
-              <Label>বিভাগ</Label>
+              <Label>{t('auth.expert.category')}</Label>
               <Select value={form.category} onValueChange={(v) => update('category', v)}>
                 <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="বিভাগ বেছে নিন" />
+                  <SelectValue placeholder={t('auth.expert.categoryPlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
                   {CATEGORIES.map((cat) => (
@@ -138,34 +140,34 @@ export default function ExpertSignupPage() {
               </Select>
             </div>
             <div>
-              <Label>ট্যাগলাইন (এক লাইনে আপনার পরিচয়)</Label>
-              <Input className="mt-1" placeholder="যেমন: Fiverr-এ ৫ বছরের অভিজ্ঞ ফ্রিল্যান্সার" value={form.tagline} onChange={(e) => update('tagline', e.target.value)} maxLength={100} />
+              <Label>{t('auth.expert.tagline')}</Label>
+              <Input className="mt-1" placeholder={t('auth.expert.taglinePlaceholder')} value={form.tagline} onChange={(e) => update('tagline', e.target.value)} maxLength={100} />
             </div>
             <div>
-              <Label>বিস্তারিত পরিচয়</Label>
-              <Textarea className="mt-1" placeholder="আপনার অভিজ্ঞতা ও দক্ষতা সম্পর্কে লিখুন..." rows={5} value={form.bio} onChange={(e) => update('bio', e.target.value)} />
+              <Label>{t('auth.expert.bio')}</Label>
+              <Textarea className="mt-1" placeholder={t('auth.expert.bioPlaceholder')} rows={5} value={form.bio} onChange={(e) => update('bio', e.target.value)} />
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>পেছনে</Button>
-              <Button className="flex-1" onClick={() => setStep(3)} disabled={!form.category || !form.tagline}>পরবর্তী</Button>
+              <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>{t('auth.expert.back')}</Button>
+              <Button className="flex-1" onClick={() => setStep(3)} disabled={!form.category || !form.tagline}>{t('auth.expert.next')}</Button>
             </div>
           </div>
         )}
 
         {step === 3 && (
           <div className="space-y-4">
-            <h2 className="font-semibold text-gray-800">দক্ষতা ও শর্তাবলী</h2>
+            <h2 className="font-semibold text-gray-800">{t('auth.expert.step3.heading')}</h2>
             <div>
-              <Label>দক্ষতা (কমা দিয়ে আলাদা করুন)</Label>
-              <Input className="mt-1" placeholder="যেমন: Fiverr, Upwork, Client Communication, Proposal Writing" value={form.skills} onChange={(e) => update('skills', e.target.value)} />
+              <Label>{t('auth.expert.skills')}</Label>
+              <Input className="mt-1" placeholder={t('auth.expert.skillsPlaceholder')} value={form.skills} onChange={(e) => update('skills', e.target.value)} />
             </div>
             <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 text-sm text-blue-700 space-y-2">
-              <p className="font-semibold">গুরুত্বপূর্ণ তথ্য:</p>
+              <p className="font-semibold">{t('auth.expert.info.title')}</p>
               <ul className="list-disc list-inside space-y-1 text-xs">
-                <li>আবেদন জমার পর আমাদের টিম ১-৩ কার্যদিবসে যাচাই করবে।</li>
-                <li>NID ও সার্টিফিকেট আপলোড করতে হবে (Dashboard থেকে)।</li>
-                <li>অনুমোদন না হওয়া পর্যন্ত প্রোফাইল পাবলিক থাকবে না।</li>
-                <li>প্ল্যাটফর্ম ১৮% কমিশন কেটে আপনাকে বাকি অর্থ দেবে।</li>
+                <li>{t('auth.expert.info.item1')}</li>
+                <li>{t('auth.expert.info.item2')}</li>
+                <li>{t('auth.expert.info.item3')}</li>
+                <li>{t('auth.expert.info.item4')}</li>
               </ul>
             </div>
 
@@ -174,9 +176,9 @@ export default function ExpertSignupPage() {
             )}
 
             <div className="flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={() => setStep(2)}>পেছনে</Button>
+              <Button variant="outline" className="flex-1" onClick={() => setStep(2)}>{t('auth.expert.back')}</Button>
               <Button className="flex-1" onClick={handleSubmit} disabled={loading}>
-                {loading ? 'জমা দেওয়া হচ্ছে...' : 'আবেদন জমা দিন'}
+                {loading ? t('auth.expert.submitting') : t('auth.expert.submit')}
               </Button>
             </div>
           </div>

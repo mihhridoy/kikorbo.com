@@ -4,22 +4,24 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Calendar, MessageSquare, Wallet, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 const navItems = [
-  { href: '/dashboard', label: 'ড্যাশবোর্ড', icon: LayoutDashboard },
-  { href: '/bookings', label: 'বুকিংসমূহ', icon: Calendar },
-  { href: '/messages', label: 'বার্তা', icon: MessageSquare },
-  { href: '/wallet', label: 'ওয়ালেট', icon: Wallet },
-  { href: '/settings', label: 'সেটিংস', icon: Settings },
+  { href: '/dashboard', labelKey: 'user.nav.dashboard', icon: LayoutDashboard },
+  { href: '/bookings', labelKey: 'user.nav.bookings', icon: Calendar },
+  { href: '/messages', labelKey: 'user.nav.messages', icon: MessageSquare },
+  { href: '/wallet', labelKey: 'user.nav.wallet', icon: Wallet },
+  { href: '/settings', labelKey: 'user.nav.settings', icon: Settings },
 ];
 
 export function UserSidebar() {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   return (
     <aside className="hidden md:flex w-56 flex-col border-r border-gray-100 bg-white min-h-screen py-6">
       <nav className="flex flex-col gap-1 px-3">
-        {navItems.map(({ href, label, icon: Icon }) => (
+        {navItems.map(({ href, labelKey, icon: Icon }) => (
           <Link
             key={href}
             href={href}
@@ -31,7 +33,7 @@ export function UserSidebar() {
             )}
           >
             <Icon className="h-4 w-4" />
-            {label}
+            {t(labelKey)}
           </Link>
         ))}
       </nav>

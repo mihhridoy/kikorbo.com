@@ -6,6 +6,8 @@ import { Mic, MicOff, Video, VideoOff, Phone, MessageSquare, Send } from 'lucide
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils/cn';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
+import { DEMO_EXPERT_REPLIES } from '@/lib/i18n/dicts/booking';
 
 interface ChatMessage {
   id: string;
@@ -14,30 +16,22 @@ interface ChatMessage {
   time: string;
 }
 
-const EXPERT_REPLIES = [
-  'আপনার সমস্যাটি বুঝতে পারছি। আরেকটু বিস্তারিত বলুন।',
-  'হ্যাঁ, এই বিষয়ে আমি আপনাকে সাহায্য করতে পারব।',
-  'ঠিক আছে, আমি একটি পরামর্শ দিচ্ছি।',
-  'এই পরিস্থিতিতে সবচেয়ে ভালো উপায় হলো ধাপে ধাপে এগোনো।',
-  'আপনার প্রশ্নটি অনেক গুরুত্বপূর্ণ। চলুন বিস্তারিত আলোচনা করি।',
-  'আমি বুঝতে পারছি। এই সমস্যার সমাধান আছে।',
-];
-
-function now() {
-  return new Date().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' });
-}
-
 function DemoConsultationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t, lang } = useLanguage();
 
-  const expertName = searchParams.get('expert') || 'বিশেষজ্ঞ';
+  const expertName = searchParams.get('expert') || t('booking.demo.defaultExpert');
   const sessionType = (searchParams.get('sessionType') || 'video') as 'video' | 'voice' | 'chat';
   const duration = parseInt(searchParams.get('duration') || '30', 10);
-  const packageTitle = searchParams.get('package') || 'পরামর্শ';
+  const packageTitle = searchParams.get('package') || t('booking.demo.defaultPackage');
+
+  function now() {
+    return new Date().toLocaleTimeString(lang === 'bn' ? 'bn-BD' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+  }
 
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { id: '0', sender: 'system', content: '✅ সেশন শুরু হয়েছে। টাইমার চালু হয়েছে।', time: now() },
+    { id: '0', sender: 'system', content: t('booking.demo.sessionStarted'), time: now() },
   ]);
   const [message, setMessage] = useState('');
   const [micOn, setMicOn] = useState(true);
@@ -71,7 +65,7 @@ function DemoConsultationContent() {
         }
       })
       .catch(() => {
-        setStreamError('ক্যামেরা/মাইক অ্যাক্সেস পাওয়া যায়নি। ব্রাউজার পারমিশন চেক করুন।');
+        setStreamError(t('booking.demo.streamError'));
       });
 
     return () => {
@@ -126,7 +120,8 @@ function DemoConsultationContent() {
     // Simulate expert reply after 1.5–3s
     const delay = 1500 + Math.random() * 1500;
     replyTimeoutRef.current = setTimeout(() => {
-      const reply = EXPERT_REPLIES[Math.floor(Math.random() * EXPERT_REPLIES.length)];
+      const replies = DEMO_EXPERT_REPLIES[lang];
+      const reply = replies[Math.floor(Math.random() * replies.length)];
       setMessages((prev) => [...prev, { id: (Date.now() + 1).toString(), sender: 'expert', content: reply, time: now() }]);
     }, delay);
   };
@@ -146,7 +141,7 @@ function DemoConsultationContent() {
           </div>
           <div>
             <p className="font-semibold text-sm text-gray-900">{expertName}</p>
-            <p className="text-xs text-gray-400">{sessionEnded ? 'সেশন শেষ' : '● সেশন চলমান'}</p>
+            <p className="text-xs text-gray-400">{sessionEnded ? t('booking.demo.sessionEnded') : t('booking.demo.sessionActive')}</p>
           </div>
         </div>
 
@@ -176,7 +171,7 @@ function DemoConsultationContent() {
 
         <div className="border-t border-gray-100 p-3 flex gap-2">
           <Input
-            placeholder={sessionEnded ? 'সেশন শেষ হয়েছে' : 'বার্তা লিখুন...'}
+            placeholder={sessionEnded ? t('booking.demo.inputEnded') : t('booking.demo.inputPlaceholder')}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
@@ -196,7 +191,7 @@ function DemoConsultationContent() {
           <div className="text-white text-sm font-medium">{packageTitle} · {sessionType.toUpperCase()}</div>
           <div className={cn('text-2xl font-bold font-mono', isWarning ? 'text-red-400 animate-pulse' : 'text-white')}>
             {formatted}
-            {isWarning && <span className="ml-2 text-xs font-normal">শেষ হতে চলেছে!</span>}
+            {isWarning && <span className="ml-2 text-xs font-normal">{t('booking.demo.warningEnding')}</span>}
           </div>
           <button onClick={() => setShowChat(!showChat)} className="text-gray-400 hover:text-white md:hidden">
             <MessageSquare className="h-5 w-5" />
@@ -208,13 +203,13 @@ function DemoConsultationContent() {
           {sessionEnded ? (
             <div className="text-center text-white">
               <div className="text-6xl mb-4">✅</div>
-              <h2 className="text-xl font-bold">সেশন সম্পন্ন হয়েছে</h2>
-              <p className="text-gray-400 text-sm mt-1">ধন্যবাদ!</p>
+              <h2 className="text-xl font-bold">{t('booking.demo.sessionCompleted')}</h2>
+              <p className="text-gray-400 text-sm mt-1">{t('booking.demo.thanks')}</p>
             </div>
           ) : sessionType === 'chat' ? (
             <div className="text-center text-gray-400">
               <MessageSquare className="h-16 w-16 mx-auto mb-3 opacity-30" />
-              <p className="text-sm">চ্যাট সেশন চলমান — বাম পাশে চ্যাট করুন</p>
+              <p className="text-sm">{t('booking.demo.chatRunningLeft')}</p>
             </div>
           ) : sessionType === 'video' ? (
             <div className="w-full h-full relative">
@@ -225,7 +220,7 @@ function DemoConsultationContent() {
                     {expertName.charAt(0)}
                   </div>
                   <p className="text-sm text-gray-400">{expertName}</p>
-                  <p className="text-xs text-gray-500 mt-1">(ডেমো — সংযুক্ত আছেন)</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('booking.demo.demoConnected')}</p>
                 </div>
               </div>
               {/* Local video (self) */}
@@ -251,7 +246,7 @@ function DemoConsultationContent() {
                 {expertName.charAt(0)}
               </div>
               <p className="text-lg font-medium">{expertName}</p>
-              <p className="text-sm text-gray-400 mt-1">ভয়েস কল চলমান</p>
+              <p className="text-sm text-gray-400 mt-1">{t('booking.demo.voiceRunning')}</p>
               {streamError && <p className="text-xs text-red-400 mt-2">{streamError}</p>}
             </div>
           )}
@@ -279,7 +274,7 @@ function DemoConsultationContent() {
               className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-full text-sm font-medium"
             >
               <Phone className="h-4 w-4 rotate-[135deg]" />
-              সেশন শেষ করুন
+              {t('booking.demo.endSession')}
             </button>
           </div>
         )}
@@ -291,16 +286,16 @@ function DemoConsultationContent() {
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full">
             {!sessionEnded ? (
               <>
-                <h2 className="text-lg font-bold text-gray-900 mb-2">সেশন শেষ করুন?</h2>
-                <p className="text-gray-500 text-sm mb-4">সেশন শেষ করলে টাইমার বন্ধ হবে।</p>
+                <h2 className="text-lg font-bold text-gray-900 mb-2">{t('booking.demo.endSessionConfirm')}</h2>
+                <p className="text-gray-500 text-sm mb-4">{t('booking.demo.endSessionConfirmDesc')}</p>
                 <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1" onClick={() => setShowEndModal(false)}>বাতিল</Button>
-                  <Button className="flex-1 bg-red-600 hover:bg-red-700" onClick={handleEndSession}>হ্যাঁ, শেষ করুন</Button>
+                  <Button variant="outline" className="flex-1" onClick={() => setShowEndModal(false)}>{t('booking.demo.cancel')}</Button>
+                  <Button className="flex-1 bg-red-600 hover:bg-red-700" onClick={handleEndSession}>{t('booking.demo.yesEnd')}</Button>
                 </div>
               </>
             ) : (
               <>
-                <h2 className="text-lg font-bold text-gray-900 mb-4">সেশন কেমন ছিল?</h2>
+                <h2 className="text-lg font-bold text-gray-900 mb-4">{t('booking.demo.howWasSession')}</h2>
                 <div className="flex gap-2 justify-center mb-4">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button key={star} onClick={() => setRating(star)} className="text-3xl">
@@ -311,7 +306,7 @@ function DemoConsultationContent() {
                 <textarea
                   className="w-full rounded-lg border border-gray-200 p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-600"
                   rows={3}
-                  placeholder="আপনার অভিজ্ঞতা লিখুন (ঐচ্ছিক)"
+                  placeholder={t('booking.demo.reviewPlaceholder')}
                   value={reviewComment}
                   onChange={(e) => setReviewComment(e.target.value)}
                 />
@@ -320,10 +315,10 @@ function DemoConsultationContent() {
                   onClick={() => router.push('/dashboard')}
                   disabled={rating === 0}
                 >
-                  রিভিউ দিন ও বের হন
+                  {t('booking.demo.submitReview')}
                 </Button>
                 <Button variant="outline" className="w-full mt-2" onClick={() => router.push('/dashboard')}>
-                  এড়িয়ে যান
+                  {t('booking.demo.skip')}
                 </Button>
               </>
             )}
@@ -334,16 +329,21 @@ function DemoConsultationContent() {
   );
 }
 
+function DemoLoadingFallback() {
+  const { t } = useLanguage();
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-900">
+      <div className="text-center text-white">
+        <div className="h-10 w-10 rounded-xl bg-primary-600 animate-pulse mx-auto mb-3" />
+        <p className="text-gray-400">{t('booking.demo.loading')}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function DemoConsultationPage() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen bg-gray-900">
-        <div className="text-center text-white">
-          <div className="h-10 w-10 rounded-xl bg-primary-600 animate-pulse mx-auto mb-3" />
-          <p className="text-gray-400">লোড হচ্ছে...</p>
-        </div>
-      </div>
-    }>
+    <Suspense fallback={<DemoLoadingFallback />}>
       <DemoConsultationContent />
     </Suspense>
   );
