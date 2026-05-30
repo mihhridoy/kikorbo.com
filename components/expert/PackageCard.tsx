@@ -7,11 +7,12 @@ import { formatBDT } from '@/lib/utils/currency';
 import { calculateCommission } from '@/lib/utils/commission';
 import { cn } from '@/lib/utils/cn';
 import type { Package } from '@/lib/supabase/types';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 const SESSION_ICONS = {
-  chat: { icon: MessageSquare, label: 'চ্যাট' },
-  voice: { icon: Phone, label: 'ভয়েস' },
-  video: { icon: Video, label: 'ভিডিও' },
+  chat: { icon: MessageSquare, labelKey: 'experts.sessionChat' },
+  voice: { icon: Phone, labelKey: 'experts.sessionVoice' },
+  video: { icon: Video, labelKey: 'experts.sessionVideo' },
 };
 
 const DURATION_LABELS: Record<number, { label: string; color: string }> = {
@@ -28,6 +29,7 @@ interface PackageCardProps {
 }
 
 export function PackageCard({ pkg, onBook, showEarnings = false, selected = false }: PackageCardProps) {
+  const { t } = useLanguage();
   const durationInfo = DURATION_LABELS[pkg.duration_minutes] || { label: 'Custom', color: 'bg-gray-50 border-gray-200' };
   const { expertEarnings } = calculateCommission(pkg.price_bdt);
 
@@ -45,14 +47,14 @@ export function PackageCard({ pkg, onBook, showEarnings = false, selected = fals
         <div className="text-right">
           <p className="text-xl font-bold text-gray-900">{formatBDT(pkg.price_bdt)}</p>
           {showEarnings && (
-            <p className="text-xs text-green-600">আপনি পাবেন: {formatBDT(expertEarnings)}</p>
+            <p className="text-xs text-green-600">{t('experts.youEarn')} {formatBDT(expertEarnings)}</p>
           )}
         </div>
       </div>
 
       <div className="flex items-center gap-1.5 mt-2 text-gray-500">
         <Clock className="h-3.5 w-3.5" />
-        <span className="text-sm">{pkg.duration_minutes} মিনিট</span>
+        <span className="text-sm">{pkg.duration_minutes} {t('experts.minutes')}</span>
       </div>
 
       {pkg.description && (
@@ -67,7 +69,7 @@ export function PackageCard({ pkg, onBook, showEarnings = false, selected = fals
           return (
             <div key={type} className="flex items-center gap-1 rounded-md bg-white/70 px-2 py-1 text-xs text-gray-600">
               <Icon className="h-3 w-3" />
-              {info.label}
+              {t(info.labelKey)}
             </div>
           );
         })}
@@ -75,7 +77,7 @@ export function PackageCard({ pkg, onBook, showEarnings = false, selected = fals
 
       {onBook && (
         <Button className="w-full mt-4" onClick={onBook}>
-          এখন বুক করুন
+          {t('experts.bookNow')}
         </Button>
       )}
     </div>

@@ -9,9 +9,11 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { formatBDT } from '@/lib/utils/currency';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 export default function ExpertRequestsPage() {
   const { profile } = useAuth();
+  const { t, lang } = useLanguage();
   const [expert, setExpert] = useState<any>(null);
   const [bookings, setBookings] = useState<any[]>([]);
   const [filter, setFilter] = useState<'pending' | 'confirmed' | 'cancelled'>('pending');
@@ -52,22 +54,28 @@ export default function ExpertRequestsPage() {
     setActionLoading(null);
   }
 
+  const filterLabels: Record<'pending' | 'confirmed' | 'cancelled', string> = {
+    pending: t('expert.requests.filter.pending'),
+    confirmed: t('expert.requests.filter.confirmed'),
+    cancelled: t('expert.requests.filter.cancelled'),
+  };
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">বুকিং রিকোয়েস্ট</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('expert.requests.title')}</h1>
 
       <div className="flex gap-2 mb-6">
         {(['pending', 'confirmed', 'cancelled'] as const).map((f) => (
           <Button key={f} size="sm" variant={filter === f ? 'default' : 'outline'} onClick={() => setFilter(f)}>
-            {{ pending: 'অপেক্ষমাণ', confirmed: 'নিশ্চিত', cancelled: 'বাতিল' }[f]}
+            {filterLabels[f]}
           </Button>
         ))}
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400">লোড হচ্ছে...</div>
+        <div className="text-center py-12 text-gray-400">{t('expert.requests.loading')}</div>
       ) : bookings.length === 0 ? (
-        <EmptyState icon={Clock} title="কোনো রিকোয়েস্ট নেই" description="এখানে বুকিং রিকোয়েস্ট দেখা যাবে।" />
+        <EmptyState icon={Clock} title={t('expert.requests.emptyTitle')} description={t('expert.requests.emptyDesc')} />
       ) : (
         <div className="space-y-4">
           {bookings.map((booking) => (
@@ -81,30 +89,30 @@ export default function ExpertRequestsPage() {
                   <h3 className="font-bold text-gray-900">{booking.profiles?.full_name}</h3>
                   <p className="text-sm text-gray-500">{booking.profiles?.email}</p>
                   <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
-                    <span>📦 {booking.packages?.title} ({booking.packages?.duration_minutes} মিনিট)</span>
+                    <span>📦 {booking.packages?.title} ({booking.packages?.duration_minutes} {t('expert.requests.minutes')})</span>
                     <span>💰 {formatBDT(booking.price_bdt)}</span>
-                    <span>🕐 {new Date(booking.scheduled_at).toLocaleString('bn-BD', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                    <span>🕐 {new Date(booking.scheduled_at).toLocaleString(lang === 'bn' ? 'bn-BD' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                     <span className="uppercase">📱 {booking.session_type}</span>
                   </div>
                   {booking.notes && (
                     <div className="mt-2 rounded-lg bg-gray-50 p-2.5 text-xs text-gray-600">
-                      <span className="font-semibold text-gray-700">নোট: </span>{booking.notes}
+                      <span className="font-semibold text-gray-700">{t('expert.requests.note')}</span>{booking.notes}
                     </div>
                   )}
                 </div>
                 {filter === 'pending' && (
                   <div className="flex gap-2 shrink-0">
                     <Button size="sm" variant="outline" className="text-red-600 border-red-200" disabled={actionLoading === booking.id} onClick={() => handleAction(booking.id, 'reject')}>
-                      <XCircle className="h-4 w-4 mr-1" /> না
+                      <XCircle className="h-4 w-4 mr-1" /> {t('expert.requests.no')}
                     </Button>
                     <Button size="sm" className="bg-green-600 hover:bg-green-700" disabled={actionLoading === booking.id} onClick={() => handleAction(booking.id, 'accept')}>
-                      <CheckCircle className="h-4 w-4 mr-1" /> হ্যাঁ
+                      <CheckCircle className="h-4 w-4 mr-1" /> {t('expert.requests.yes')}
                     </Button>
                   </div>
                 )}
                 {filter !== 'pending' && (
                   <Badge variant={filter === 'confirmed' ? 'success' : 'destructive'}>
-                    {filter === 'confirmed' ? 'নিশ্চিত' : 'বাতিল'}
+                    {filter === 'confirmed' ? t('expert.requests.confirmed') : t('expert.requests.cancelled')}
                   </Badge>
                 )}
               </div>

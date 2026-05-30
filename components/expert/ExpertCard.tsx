@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { MessageSquare, Video, Phone, Star } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -6,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { VerifiedBadge } from '@/components/shared/VerifiedBadge';
 import { StarRating } from '@/components/shared/StarRating';
 import { formatBDT } from '@/lib/utils/currency';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 interface ExpertCardProps {
   expert: {
@@ -31,6 +34,7 @@ const SESSION_ICONS = {
 };
 
 export function ExpertCard({ expert }: ExpertCardProps) {
+  const { t } = useLanguage();
   const profileHref = `/experts/${expert.username || expert.id}`;
 
   return (
@@ -53,7 +57,7 @@ export function ExpertCard({ expert }: ExpertCardProps) {
           <p className="text-xs text-gray-500 mt-0.5">{expert.category}</p>
         </div>
         {expert.is_online && (
-          <Badge variant="online" className="text-xs shrink-0">অনলাইন</Badge>
+          <Badge variant="online" className="text-xs shrink-0">{t('experts.online')}</Badge>
         )}
       </div>
 
@@ -63,18 +67,18 @@ export function ExpertCard({ expert }: ExpertCardProps) {
 
       <div className="mt-3 flex items-center gap-3 text-xs text-gray-500">
         <StarRating rating={expert.avg_rating} size="sm" showValue />
-        <span>({expert.total_reviews} রিভিউ)</span>
+        <span>({expert.total_reviews} {t('experts.reviewsLabel')})</span>
         <span>•</span>
-        <span>{expert.total_sessions} সেশন</span>
+        <span>{expert.total_sessions} {t('experts.sessionsLabel')}</span>
       </div>
 
       <div className="mt-4 flex items-center justify-between">
         <div>
-          <p className="text-xs text-gray-400">শুরু হয়</p>
-          <p className="text-base font-bold text-gray-900">{formatBDT(expert.min_price || 300)}<span className="text-xs font-normal text-gray-400">/২০ মিনিট</span></p>
+          <p className="text-xs text-gray-400">{t('experts.startsFrom')}</p>
+          <p className="text-base font-bold text-gray-900">{formatBDT(expert.min_price || 300)}<span className="text-xs font-normal text-gray-400">{t('experts.perTwentyMin')}</span></p>
         </div>
         <Button size="sm" asChild>
-          <Link href={profileHref}>প্রোফাইল দেখুন</Link>
+          <Link href={profileHref}>{t('experts.viewProfile')}</Link>
         </Button>
       </div>
     </div>

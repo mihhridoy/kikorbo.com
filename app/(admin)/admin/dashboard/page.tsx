@@ -6,8 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { createClient } from '@/lib/supabase/client';
 import { formatBDT } from '@/lib/utils/currency';
 import { Skeleton } from '@/components/shared/LoadingSkeleton';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 export default function AdminDashboardPage() {
+  const { t, lang } = useLanguage();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
@@ -59,15 +61,15 @@ export default function AdminDashboardPage() {
   }
 
   const statCards = [
-    { label: 'মোট ব্যবহারকারী', value: stats.totalUsers, icon: Users, color: 'text-blue-600 bg-blue-50', sub: `+${stats.newUsersThisWeek} এই সপ্তাহে` },
-    { label: 'মোট বিশেষজ্ঞ', value: stats.totalExperts, icon: UserCheck, color: 'text-green-600 bg-green-50', sub: `${stats.pendingVerifications} অপেক্ষমাণ` },
-    { label: 'এই মাসের রেভিনিউ', value: formatBDT(stats.monthRevenue), icon: DollarSign, color: 'text-purple-600 bg-purple-50', sub: `প্ল্যাটফর্ম: ${formatBDT(stats.platformRevenue)}` },
-    { label: 'খোলা বিতর্ক', value: stats.openDisputes, icon: AlertTriangle, color: 'text-red-600 bg-red-50', sub: `${formatBDT(stats.pendingPayouts)} পেআউট অপেক্ষমাণ` },
+    { label: t('admin.dashboard.totalUsers'), value: stats.totalUsers, icon: Users, color: 'text-blue-600 bg-blue-50', sub: `+${stats.newUsersThisWeek} ${t('admin.dashboard.thisWeekSuffix')}` },
+    { label: t('admin.dashboard.totalExperts'), value: stats.totalExperts, icon: UserCheck, color: 'text-green-600 bg-green-50', sub: `${stats.pendingVerifications} ${t('admin.dashboard.pendingSuffix')}` },
+    { label: t('admin.dashboard.monthRevenue'), value: formatBDT(stats.monthRevenue), icon: DollarSign, color: 'text-purple-600 bg-purple-50', sub: `${t('admin.dashboard.platformPrefix')} ${formatBDT(stats.platformRevenue)}` },
+    { label: t('admin.dashboard.openDisputes'), value: stats.openDisputes, icon: AlertTriangle, color: 'text-red-600 bg-red-50', sub: `${formatBDT(stats.pendingPayouts)} ${t('admin.dashboard.payoutPendingSuffix')}` },
   ];
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Admin Dashboard</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('admin.dashboard.title')}</h1>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {statCards.map(({ label, value, icon: Icon, color, sub }) => (
@@ -84,13 +86,13 @@ export default function AdminDashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
-          <CardHeader><CardTitle className="text-base">দ্রুত ক্রিয়া</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">{t('admin.dashboard.quickActions')}</CardTitle></CardHeader>
           <CardContent className="space-y-2">
             {[
-              { label: `বিশেষজ্ঞ যাচাই করুন (${stats.pendingVerifications})`, href: '/admin/experts', urgent: stats.pendingVerifications > 0 },
-              { label: `পেআউট অনুমোদন করুন`, href: '/admin/payouts' },
-              { label: `বিতর্ক সমাধান করুন (${stats.openDisputes})`, href: '/admin/disputes', urgent: stats.openDisputes > 0 },
-              { label: 'সকল বুকিং দেখুন', href: '/admin/bookings' },
+              { label: `${t('admin.dashboard.verifyExperts')} (${stats.pendingVerifications})`, href: '/admin/experts', urgent: stats.pendingVerifications > 0 },
+              { label: `${t('admin.dashboard.approvePayouts')}`, href: '/admin/payouts' },
+              { label: `${t('admin.dashboard.resolveDisputes')} (${stats.openDisputes})`, href: '/admin/disputes', urgent: stats.openDisputes > 0 },
+              { label: t('admin.dashboard.viewAllBookings'), href: '/admin/bookings' },
             ].map(({ label, href, urgent }) => (
               <a key={href} href={href} className={`flex items-center justify-between rounded-lg border p-3 hover:bg-gray-50 ${urgent ? 'border-orange-200 bg-orange-50' : 'border-gray-100'}`}>
                 <span className={`text-sm font-medium ${urgent ? 'text-orange-700' : 'text-gray-700'}`}>{label}</span>
@@ -101,12 +103,12 @@ export default function AdminDashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-base">প্ল্যাটফর্ম স্বাস্থ্য</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">{t('admin.dashboard.platformHealth')}</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             {[
-              { label: 'বিশেষজ্ঞ যাচাই', status: stats.pendingVerifications === 0 ? 'good' : 'warning', value: `${stats.pendingVerifications} অপেক্ষমাণ` },
-              { label: 'খোলা বিতর্ক', status: stats.openDisputes === 0 ? 'good' : stats.openDisputes > 5 ? 'danger' : 'warning', value: `${stats.openDisputes} খোলা` },
-              { label: 'পেআউট', status: 'warning', value: `${formatBDT(stats.pendingPayouts)} অপেক্ষমাণ` },
+              { label: t('admin.dashboard.expertVerification'), status: stats.pendingVerifications === 0 ? 'good' : 'warning', value: `${stats.pendingVerifications} ${t('admin.dashboard.pendingSuffix')}` },
+              { label: t('admin.dashboard.openDisputes'), status: stats.openDisputes === 0 ? 'good' : stats.openDisputes > 5 ? 'danger' : 'warning', value: `${stats.openDisputes} ${t('admin.dashboard.openSuffix')}` },
+              { label: t('admin.dashboard.payout'), status: 'warning', value: `${formatBDT(stats.pendingPayouts)} ${t('admin.dashboard.pendingSuffix')}` },
             ].map(({ label, status, value }) => (
               <div key={label} className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
                 <span className="text-sm text-gray-700">{label}</span>

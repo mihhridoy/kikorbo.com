@@ -11,6 +11,7 @@ import { formatBDT } from '@/lib/utils/currency';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { calculateCommission } from '@/lib/utils/commission';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import type { Package } from '@/lib/supabase/types';
 
 interface BookingModalProps {
@@ -22,16 +23,17 @@ interface BookingModalProps {
 
 type Step = 'session_type' | 'schedule' | 'notes' | 'review';
 
-const SESSION_TYPES = [
-  { value: 'video', label: 'ভিডিও কল', icon: Video, desc: 'ফেস-টু-ফেস ভিডিও পরামর্শ' },
-  { value: 'voice', label: 'ভয়েস কল', icon: Phone, desc: 'অডিও কলে পরামর্শ' },
-  { value: 'chat', label: 'চ্যাট', icon: MessageSquare, desc: 'টেক্সট চ্যাটে পরামর্শ' },
-];
-
 export function BookingModal({ expertId, expertName, selectedPackage, onClose }: BookingModalProps) {
   const { user, profile } = useAuth();
   const router = useRouter();
   const supabase = createClient();
+  const { t } = useLanguage();
+
+  const SESSION_TYPES = [
+    { value: 'video', labelKey: 'booking.sessionType.video.label', icon: Video, descKey: 'booking.sessionType.video.desc' },
+    { value: 'voice', labelKey: 'booking.sessionType.voice.label', icon: Phone, descKey: 'booking.sessionType.voice.desc' },
+    { value: 'chat', labelKey: 'booking.sessionType.chat.label', icon: MessageSquare, descKey: 'booking.sessionType.chat.desc' },
+  ];
 
   const [step, setStep] = useState<Step>('session_type');
   const [sessionType, setSessionType] = useState<'chat' | 'voice' | 'video'>('video');
@@ -57,7 +59,7 @@ export function BookingModal({ expertId, expertName, selectedPackage, onClose }:
       return;
     }
     if (!selectedDate || !selectedTime) {
-      setError('তারিখ ও সময় বেছে নিন');
+      setError(t('booking.error.pickDateTime'));
       return;
     }
 
@@ -91,7 +93,7 @@ export function BookingModal({ expertId, expertName, selectedPackage, onClose }:
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'বুকিং তৈরি করা যায়নি');
+      if (!res.ok) throw new Error(data.error || t('booking.error.createFailed'));
 
       router.push(`/bookings/${data.bookingId}?success=1`);
       onClose();
@@ -129,8 +131,8 @@ export function BookingModal({ expertId, expertName, selectedPackage, onClose }:
         {/* Step 1: Session Type */}
         {step === 'session_type' && (
           <div className="space-y-3">
-            <p className="text-sm font-medium text-gray-700">সেশনের ধরন বেছে নিন</p>
-            {availableSessionTypes.map(({ value, label, icon: Icon, desc }) => (
+            <p className="text-sm font-medium text-gray-700">{t('booking.step.chooseSessionType')}</p>
+            {availableSessionTypes.map(({ value, labelKey, icon: Icon, descKey }) => (
               <button
                 key={value}
                 onClick={() => setSessionType(value as 'chat' | 'voice' | 'video')}
@@ -140,13 +142,13 @@ export function BookingModal({ expertId, expertName, selectedPackage, onClose }:
               >
                 <Icon className={`h-5 w-5 ${sessionType === value ? 'text-primary-600' : 'text-gray-400'}`} />
                 <div>
-                  <p className="font-medium text-gray-900">{label}</p>
-                  <p className="text-xs text-gray-500">{desc}</p>
+                  <p className="font-medium text-gray-900">{t(labelKey)}</p>
+                  <p className="text-xs text-gray-500">{t(descKey)}</p>
                 </div>
               </button>
             ))}
             <Button className="w-full mt-2" onClick={() => setStep('schedule')}>
-              পরবর্তী
+              {t('booking.next')}
             </Button>
           </div>
         )}
@@ -155,7 +157,7 @@ export function BookingModal({ expertId, expertName, selectedPackage, onClose }:
         {step === 'schedule' && (
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-2">তারিখ বেছে নিন</label>
+              <label className="text-sm font-medium text-gray-700 block mb-2">{t('booking.chooseDate')}</label>
               <input
                 type="date"
                 min={getMinDate()}
@@ -166,7 +168,7 @@ export function BookingModal({ expertId, expertName, selectedPackage, onClose }:
             </div>
             {selectedDate && (
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-2">সময় বেছে নিন</label>
+                <label className="text-sm font-medium text-gray-700 block mb-2">{t('booking.chooseTime')}</label>
                 <div className="grid grid-cols-3 gap-2">
                   {availableTimes.map((time) => (
                     <button
@@ -183,9 +185,9 @@ export function BookingModal({ expertId, expertName, selectedPackage, onClose }:
               </div>
             )}
             <div className="flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={() => setStep('session_type')}>পেছনে</Button>
+              <Button variant="outline" className="flex-1" onClick={() => setStep('session_type')}>{t('booking.back')}</Button>
               <Button className="flex-1" onClick={() => setStep('notes')} disabled={!selectedDate || !selectedTime}>
-                পরবর্তী
+                {t('booking.next')}
               </Button>
             </div>
           </div>
@@ -196,12 +198,12 @@ export function BookingModal({ expertId, expertName, selectedPackage, onClose }:
           <div className="space-y-4">
             <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 flex gap-2">
               <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-              <p className="text-xs text-amber-700">ব্যক্তিগত যোগাযোগের তথ্য (ফোন নম্বর, সোশ্যাল মিডিয়া) শেয়ার করবেন না।</p>
+              <p className="text-xs text-amber-700">{t('booking.notes.warning')}</p>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-2">বিশেষজ্ঞকে কী জানাতে চান? (ঐচ্ছিক)</label>
+              <label className="text-sm font-medium text-gray-700 block mb-2">{t('booking.notes.label')}</label>
               <Textarea
-                placeholder="আপনার সমস্যা বা প্রশ্ন সংক্ষেপে লিখুন। পেমেন্টের পর বিশেষজ্ঞ এটি দেখতে পাবেন।"
+                placeholder={t('booking.notes.placeholder')}
                 rows={4}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -210,8 +212,8 @@ export function BookingModal({ expertId, expertName, selectedPackage, onClose }:
               <p className="text-xs text-gray-400 mt-1 text-right">{notes.length}/500</p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={() => setStep('schedule')}>পেছনে</Button>
-              <Button className="flex-1" onClick={() => setStep('review')}>পরবর্তী</Button>
+              <Button variant="outline" className="flex-1" onClick={() => setStep('schedule')}>{t('booking.back')}</Button>
+              <Button className="flex-1" onClick={() => setStep('review')}>{t('booking.next')}</Button>
             </div>
           </div>
         )}
@@ -221,27 +223,27 @@ export function BookingModal({ expertId, expertName, selectedPackage, onClose }:
           <div className="space-y-4">
             <div className="rounded-xl bg-gray-50 p-4 space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">বিশেষজ্ঞ</span>
+                <span className="text-gray-600">{t('booking.review.expert')}</span>
                 <span className="font-medium">{expertName}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">প্যাকেজ</span>
-                <span className="font-medium">{selectedPackage.title} ({selectedPackage.duration_minutes} মিনিট)</span>
+                <span className="text-gray-600">{t('booking.review.package')}</span>
+                <span className="font-medium">{selectedPackage.title} ({selectedPackage.duration_minutes} {t('booking.review.minutes')})</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">সেশনের ধরন</span>
+                <span className="text-gray-600">{t('booking.review.sessionType')}</span>
                 <Badge variant="secondary">{sessionType}</Badge>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">তারিখ ও সময়</span>
+                <span className="text-gray-600">{t('booking.review.dateTime')}</span>
                 <span className="font-medium">{selectedDate} {selectedTime}</span>
               </div>
               <hr className="border-gray-200" />
               <div className="flex justify-between font-bold text-gray-900">
-                <span>মোট পরিমাণ</span>
+                <span>{t('booking.review.total')}</span>
                 <span>{formatBDT(selectedPackage.price_bdt)}</span>
               </div>
-              <p className="text-xs text-gray-400">প্ল্যাটফর্ম কমিশন অন্তর্ভুক্ত — কোনো লুকানো চার্জ নেই</p>
+              <p className="text-xs text-gray-400">{t('booking.review.commissionIncluded')}</p>
             </div>
 
             {error && (
@@ -250,11 +252,11 @@ export function BookingModal({ expertId, expertName, selectedPackage, onClose }:
 
             <div className="space-y-2">
               <Button className="w-full bg-green-600 hover:bg-green-700" onClick={handleSubmit} disabled={loading}>
-                {loading ? 'প্রক্রিয়াকরণ...' : `রিকোয়েস্ট পাঠান — ${formatBDT(selectedPackage.price_bdt)}`}
+                {loading ? t('booking.review.processing') : `${t('booking.review.sendRequest')} — ${formatBDT(selectedPackage.price_bdt)}`}
               </Button>
-              <p className="text-xs text-center text-gray-400">বিশেষজ্ঞ গ্রহণ করার পর পেমেন্ট করতে হবে</p>
+              <p className="text-xs text-center text-gray-400">{t('booking.review.payAfterAccept')}</p>
             </div>
-            <Button variant="outline" className="w-full" onClick={() => setStep('notes')}>পেছনে</Button>
+            <Button variant="outline" className="w-full" onClick={() => setStep('notes')}>{t('booking.back')}</Button>
           </div>
         )}
       </DialogContent>

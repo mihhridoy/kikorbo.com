@@ -13,15 +13,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { formatBDT } from '@/lib/utils/currency';
 import { calculateCommission } from '@/lib/utils/commission';
 import { PACKAGE_DURATIONS, PLATFORM } from '@/lib/constants/platform';
-
-const SESSION_TYPE_OPTIONS = [
-  { value: 'video', label: 'ভিডিও', icon: Video },
-  { value: 'voice', label: 'ভয়েস', icon: Phone },
-  { value: 'chat', label: 'চ্যাট', icon: MessageSquare },
-];
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 export default function ExpertPackagesPage() {
   const { profile } = useAuth();
+  const { t, lang } = useLanguage();
   const [expert, setExpert] = useState<any>(null);
   const [packages, setPackages] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -29,6 +25,12 @@ export default function ExpertPackagesPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const supabase = createClient();
+
+  const SESSION_TYPE_OPTIONS = [
+    { value: 'video', label: t('expert.packages.sessionType.video'), icon: Video },
+    { value: 'voice', label: t('expert.packages.sessionType.voice'), icon: Phone },
+    { value: 'chat', label: t('expert.packages.sessionType.chat'), icon: MessageSquare },
+  ];
 
   const [form, setForm] = useState({
     title: '',
@@ -104,7 +106,7 @@ export default function ExpertPackagesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('এই প্যাকেজ মুছবেন?')) return;
+    if (!confirm(t('expert.packages.deleteConfirm'))) return;
     await supabase.from('packages').delete().eq('id', id);
     await fetchData();
   };
@@ -121,12 +123,12 @@ export default function ExpertPackagesPage() {
     <div className="p-6 max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">প্যাকেজ ব্যবস্থাপনা</h1>
-          <p className="text-sm text-gray-500 mt-1">সর্বোচ্চ ৩টি প্যাকেজ (প্রতিটি মেয়াদের জন্য একটি)</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('expert.packages.title')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t('expert.packages.subtitle')}</p>
         </div>
         {packages.length < 3 && !showForm && (
           <Button onClick={() => setShowForm(true)}>
-            <Plus className="h-4 w-4 mr-2" /> নতুন প্যাকেজ
+            <Plus className="h-4 w-4 mr-2" /> {t('expert.packages.newPackage')}
           </Button>
         )}
       </div>
@@ -134,34 +136,34 @@ export default function ExpertPackagesPage() {
       {/* Package Form */}
       {showForm && (
         <div className="rounded-xl bg-white border border-gray-200 p-6 mb-6 shadow-sm">
-          <h2 className="font-bold text-gray-900 mb-4">{editingId ? 'প্যাকেজ সম্পাদনা' : 'নতুন প্যাকেজ'}</h2>
+          <h2 className="font-bold text-gray-900 mb-4">{editingId ? t('expert.packages.editPackage') : t('expert.packages.newPackage')}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label>শিরোনাম</Label>
-              <Input className="mt-1" placeholder="যেমন: Fiverr Profile Review" value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} />
+              <Label>{t('expert.packages.titleLabel')}</Label>
+              <Input className="mt-1" placeholder={t('expert.packages.titlePlaceholder')} value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} />
             </div>
             <div>
-              <Label>মেয়াদ</Label>
+              <Label>{t('expert.packages.duration')}</Label>
               <Select value={form.duration_minutes} onValueChange={(v) => setForm((p) => ({ ...p, duration_minutes: v }))}>
                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {PACKAGE_DURATIONS.map((d) => (
                     <SelectItem key={d.minutes} value={String(d.minutes)}>
-                      {d.minutes} মিনিট — {d.label}
+                      {d.minutes} {t('expert.packages.minutes')} — {d.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>মূল্য (BDT) — ন্যূনতম {PLATFORM.minPackagePrice}</Label>
+              <Label>{t('expert.packages.priceLabel')} {PLATFORM.minPackagePrice}</Label>
               <Input className="mt-1" type="number" placeholder="800" min={PLATFORM.minPackagePrice} max={PLATFORM.maxPackagePrice} value={form.price_bdt} onChange={(e) => setForm((p) => ({ ...p, price_bdt: e.target.value }))} />
               {price > 0 && (
-                <p className="text-xs text-green-600 mt-1">আপনি পাবেন: {formatBDT(expertEarnings)} (১৮% ফি কেটে)</p>
+                <p className="text-xs text-green-600 mt-1">{t('expert.packages.youWillGet')} {formatBDT(expertEarnings)} {t('expert.packages.feeDeducted')}</p>
               )}
             </div>
             <div>
-              <Label>সেশনের ধরন</Label>
+              <Label>{t('expert.packages.sessionTypeLabel')}</Label>
               <div className="flex gap-2 mt-1">
                 {SESSION_TYPE_OPTIONS.map(({ value, label, icon: Icon }) => (
                   <button
@@ -178,14 +180,14 @@ export default function ExpertPackagesPage() {
               </div>
             </div>
             <div className="sm:col-span-2">
-              <Label>বিবরণ (ঐচ্ছিক)</Label>
-              <Textarea className="mt-1" placeholder="এই প্যাকেজে কী অন্তর্ভুক্ত..." rows={2} value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} />
+              <Label>{t('expert.packages.descriptionLabel')}</Label>
+              <Textarea className="mt-1" placeholder={t('expert.packages.descriptionPlaceholder')} rows={2} value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} />
             </div>
           </div>
           <div className="flex gap-2 mt-4">
-            <Button variant="outline" className="flex-1" onClick={() => { setShowForm(false); setEditingId(null); }}>বাতিল</Button>
+            <Button variant="outline" className="flex-1" onClick={() => { setShowForm(false); setEditingId(null); }}>{t('expert.packages.cancel')}</Button>
             <Button className="flex-1" disabled={!form.title || !form.price_bdt || form.session_type.length === 0 || saving} onClick={handleSave}>
-              {saving ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ করুন'}
+              {saving ? t('expert.packages.saving') : t('expert.packages.save')}
             </Button>
           </div>
         </div>
@@ -193,11 +195,11 @@ export default function ExpertPackagesPage() {
 
       {/* Package List */}
       {loading ? (
-        <div className="text-center py-12 text-gray-400">লোড হচ্ছে...</div>
+        <div className="text-center py-12 text-gray-400">{t('expert.packages.loading')}</div>
       ) : packages.length === 0 ? (
         <div className="rounded-xl border-2 border-dashed border-gray-200 p-12 text-center">
-          <p className="text-gray-400 mb-3">কোনো প্যাকেজ নেই</p>
-          <Button onClick={() => setShowForm(true)}>প্রথম প্যাকেজ যোগ করুন</Button>
+          <p className="text-gray-400 mb-3">{t('expert.packages.noPackages')}</p>
+          <Button onClick={() => setShowForm(true)}>{t('expert.packages.addFirst')}</Button>
         </div>
       ) : (
         <div className="space-y-4">
@@ -206,10 +208,10 @@ export default function ExpertPackagesPage() {
               <PackageCard pkg={pkg} showEarnings />
               <div className="flex gap-2 mt-2 justify-end">
                 <Button variant="outline" size="sm" onClick={() => toggleActive(pkg.id, pkg.is_active)}>
-                  {pkg.is_active ? 'নিষ্ক্রিয় করুন' : 'সক্রিয় করুন'}
+                  {pkg.is_active ? t('expert.packages.deactivate') : t('expert.packages.activate')}
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => handleEdit(pkg)}>
-                  <Edit className="h-3.5 w-3.5 mr-1" /> সম্পাদনা
+                  <Edit className="h-3.5 w-3.5 mr-1" /> {t('expert.packages.edit')}
                 </Button>
                 <Button variant="outline" size="sm" className="text-red-600 border-red-200" onClick={() => handleDelete(pkg.id)}>
                   <Trash2 className="h-3.5 w-3.5" />

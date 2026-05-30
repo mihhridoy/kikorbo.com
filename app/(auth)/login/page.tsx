@@ -9,10 +9,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/store/authStore';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 const DEMO_ACCOUNTS = [
   {
-    label: 'ব্যবহারকারী',
+    labelKey: 'auth.login.demo.user',
     sublabel: 'Demo User',
     email: 'user@demo.poramorshoo.com',
     password: 'demo1234',
@@ -22,7 +23,7 @@ const DEMO_ACCOUNTS = [
     redirect: '/dashboard',
   },
   {
-    label: 'বিশেষজ্ঞ',
+    labelKey: 'auth.login.demo.expert',
     sublabel: 'Demo Expert',
     email: 'expert@demo.poramorshoo.com',
     password: 'demo1234',
@@ -32,7 +33,7 @@ const DEMO_ACCOUNTS = [
     redirect: '/expert/dashboard',
   },
   {
-    label: 'অ্যাডমিন',
+    labelKey: 'auth.login.demo.admin',
     sublabel: 'Demo Admin',
     email: 'admin@demo.poramorshoo.com',
     password: 'demo1234',
@@ -48,6 +49,7 @@ const DEMO_EMAILS = new Set(DEMO_ACCOUNTS.map((a) => a.email));
 export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
+  const { t } = useLanguage();
   const { setUser, setProfile, setLoading } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -100,7 +102,7 @@ export default function LoginPage() {
         loginAsDemo(acc);
         return;
       }
-      setError('ডেমো পাসওয়ার্ড ভুল। সঠিক পাসওয়ার্ড: demo1234');
+      setError(t('auth.login.error.demoPassword'));
       setLocalLoading(false);
       return;
     }
@@ -109,7 +111,7 @@ export default function LoginPage() {
       const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
       if (authError) {
-        setError('ইমেইল বা পাসওয়ার্ড ভুল হয়েছে।');
+        setError(t('auth.login.error.invalidCredentials'));
         return;
       }
 
@@ -121,7 +123,7 @@ export default function LoginPage() {
         else router.push('/dashboard');
       }
     } catch (err: any) {
-      setError(err?.message || 'কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+      setError(err?.message || t('auth.common.error.generic'));
     } finally {
       setLocalLoading(false);
     }
@@ -140,7 +142,7 @@ export default function LoginPage() {
       <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
         <div className="flex items-center gap-2 mb-3">
           <FlaskConical className="h-4 w-4 text-amber-600" />
-          <span className="text-sm font-semibold text-amber-800">ডেমো অ্যাকাউন্ট দিয়ে চেষ্টা করুন</span>
+          <span className="text-sm font-semibold text-amber-800">{t('auth.login.demo.title')}</span>
         </div>
         <div className="grid grid-cols-3 gap-2">
           {DEMO_ACCOUNTS.map((acc) => (
@@ -151,26 +153,26 @@ export default function LoginPage() {
               className={`flex flex-col items-center gap-1 rounded-xl border p-3 text-center transition-colors ${acc.color}`}
             >
               <span className={`h-2 w-2 rounded-full ${acc.dot}`} />
-              <span className="text-xs font-bold leading-tight">{acc.label}</span>
+              <span className="text-xs font-bold leading-tight">{t(acc.labelKey)}</span>
               <span className="text-[10px] opacity-70">{acc.sublabel}</span>
             </button>
           ))}
         </div>
         <p className="mt-3 text-[11px] text-amber-600 text-center">
-          ক্লিক করলেই সরাসরি ড্যাশবোর্ডে প্রবেশ পাবেন
+          {t('auth.login.demo.hint')}
         </p>
       </div>
 
       {/* Login Form */}
       <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-8">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">আবার স্বাগতম!</h1>
-          <p className="mt-1 text-gray-500 text-sm">আপনার অ্যাকাউন্টে প্রবেশ করুন</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('auth.login.title')}</h1>
+          <p className="mt-1 text-gray-500 text-sm">{t('auth.login.subtitle')}</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <Label htmlFor="email">ইমেইল</Label>
+            <Label htmlFor="email">{t('auth.common.email')}</Label>
             <div className="relative mt-1">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
@@ -187,15 +189,15 @@ export default function LoginPage() {
 
           <div>
             <div className="flex justify-between items-center">
-              <Label htmlFor="password">পাসওয়ার্ড</Label>
-              <Link href="/forgot-password" className="text-xs text-primary-600 hover:underline">ভুলে গেছেন?</Link>
+              <Label htmlFor="password">{t('auth.common.password')}</Label>
+              <Link href="/forgot-password" className="text-xs text-primary-600 hover:underline">{t('auth.login.forgot')}</Link>
             </div>
             <div className="relative mt-1">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
-                placeholder="পাসওয়ার্ড দিন"
+                placeholder={t('auth.login.passwordPlaceholder')}
                 className="pl-9 pr-9"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -212,23 +214,23 @@ export default function LoginPage() {
           )}
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'প্রবেশ করা হচ্ছে...' : 'লগইন করুন'}
+            {loading ? t('auth.login.submitting') : t('auth.login.submit')}
           </Button>
         </form>
 
         <div className="relative my-5">
           <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200" /></div>
-          <div className="relative flex justify-center"><span className="bg-white px-3 text-xs text-gray-400">অথবা</span></div>
+          <div className="relative flex justify-center"><span className="bg-white px-3 text-xs text-gray-400">{t('auth.login.or')}</span></div>
         </div>
 
         <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
           <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-          Google দিয়ে লগইন করুন
+          {t('auth.login.google')}
         </Button>
 
         <p className="mt-6 text-center text-sm text-gray-500">
-          অ্যাকাউন্ট নেই?{' '}
-          <Link href="/signup" className="text-primary-600 font-medium hover:underline">রেজিস্ট্রেশন করুন</Link>
+          {t('auth.login.noAccount')}{' '}
+          <Link href="/signup" className="text-primary-600 font-medium hover:underline">{t('auth.login.register')}</Link>
         </p>
       </div>
     </div>

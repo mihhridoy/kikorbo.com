@@ -14,6 +14,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Skeleton } from '@/components/shared/LoadingSkeleton';
 import { formatBDT } from '@/lib/utils/currency';
 import type { DEMO_EXPERTS } from '@/lib/constants/demoExperts';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 interface ExpertProfileClientProps {
   expertId: string;
@@ -31,6 +32,7 @@ export function ExpertProfileClient({ expertId, demoData }: ExpertProfileClientP
   const [loading, setLoading] = useState(!demoData);
   const [bookingPackage, setBookingPackage] = useState<any>(null);
   const supabase = createClient();
+  const { t, lang } = useLanguage();
 
   useEffect(() => {
     if (demoData) return; // skip Supabase when demo data provided
@@ -104,9 +106,9 @@ export function ExpertProfileClient({ expertId, demoData }: ExpertProfileClientP
                     <p className="text-gray-500">{expert.category}</p>
                   </div>
                   {expert.is_online ? (
-                    <Badge variant="online" className="ml-auto">● অনলাইন</Badge>
+                    <Badge variant="online" className="ml-auto">{t('experts.onlineWithDot')}</Badge>
                   ) : (
-                    <Badge variant="secondary" className="ml-auto text-gray-400">অফলাইন</Badge>
+                    <Badge variant="secondary" className="ml-auto text-gray-400">{t('experts.offline')}</Badge>
                   )}
                 </div>
 
@@ -117,19 +119,19 @@ export function ExpertProfileClient({ expertId, demoData }: ExpertProfileClientP
                 <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="text-center rounded-lg bg-gray-50 p-3">
                     <p className="text-lg font-bold text-gray-900">{expert.avg_rating?.toFixed(1)}</p>
-                    <p className="text-xs text-gray-500">গড় রেটিং</p>
+                    <p className="text-xs text-gray-500">{t('experts.avgRating')}</p>
                   </div>
                   <div className="text-center rounded-lg bg-gray-50 p-3">
                     <p className="text-lg font-bold text-gray-900">{expert.total_reviews}</p>
-                    <p className="text-xs text-gray-500">রিভিউ</p>
+                    <p className="text-xs text-gray-500">{t('experts.reviewsLabel')}</p>
                   </div>
                   <div className="text-center rounded-lg bg-gray-50 p-3">
                     <p className="text-lg font-bold text-gray-900">{expert.total_sessions}</p>
-                    <p className="text-xs text-gray-500">সেশন</p>
+                    <p className="text-xs text-gray-500">{t('experts.sessionsLabel')}</p>
                   </div>
                   <div className="text-center rounded-lg bg-gray-50 p-3">
                     <p className="text-lg font-bold text-gray-900">{expert.response_rate}%</p>
-                    <p className="text-xs text-gray-500">রেসপন্স রেট</p>
+                    <p className="text-xs text-gray-500">{t('experts.responseRate')}</p>
                   </div>
                 </div>
 
@@ -140,7 +142,7 @@ export function ExpertProfileClient({ expertId, demoData }: ExpertProfileClientP
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="h-4 w-4" />
-                    <span>Member since {new Date(expert.created_at).toLocaleDateString('bn-BD', { year: 'numeric', month: 'long' })}</span>
+                    <span>{t('experts.memberSince')} {new Date(expert.created_at).toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en-US', { year: 'numeric', month: 'long' })}</span>
                   </div>
                 </div>
               </div>
@@ -149,21 +151,21 @@ export function ExpertProfileClient({ expertId, demoData }: ExpertProfileClientP
             {/* Tabs */}
             <Tabs defaultValue="about">
               <TabsList>
-                <TabsTrigger value="about">সম্পর্কে</TabsTrigger>
-                <TabsTrigger value="reviews">রিভিউ ({reviews.length})</TabsTrigger>
+                <TabsTrigger value="about">{t('experts.tabAbout')}</TabsTrigger>
+                <TabsTrigger value="reviews">{t('experts.tabReviews')} ({reviews.length})</TabsTrigger>
               </TabsList>
 
               <TabsContent value="about" className="space-y-4 mt-4">
                 {expert.bio && (
                   <div className="rounded-xl bg-white border border-gray-100 p-6 shadow-sm">
-                    <h3 className="font-bold text-gray-900 mb-3">পরিচয়</h3>
+                    <h3 className="font-bold text-gray-900 mb-3">{t('experts.bioHeading')}</h3>
                     <p className="text-gray-700 leading-relaxed">{expert.bio}</p>
                   </div>
                 )}
 
                 {skills.length > 0 && (
                   <div className="rounded-xl bg-white border border-gray-100 p-6 shadow-sm">
-                    <h3 className="font-bold text-gray-900 mb-3">দক্ষতা</h3>
+                    <h3 className="font-bold text-gray-900 mb-3">{t('experts.skillsHeading')}</h3>
                     <div className="flex flex-wrap gap-2">
                       {skills.map((skill) => (
                         <Badge key={skill} variant="secondary">{skill}</Badge>
@@ -180,7 +182,7 @@ export function ExpertProfileClient({ expertId, demoData }: ExpertProfileClientP
                       <div className="text-center">
                         <p className="text-5xl font-bold text-gray-900">{expert.avg_rating?.toFixed(1)}</p>
                         <StarRating rating={expert.avg_rating || 0} size="md" className="justify-center mt-1" />
-                        <p className="text-xs text-gray-500 mt-1">{expert.total_reviews} রিভিউ</p>
+                        <p className="text-xs text-gray-500 mt-1">{expert.total_reviews} {t('experts.reviewsLabel')}</p>
                       </div>
                       <div className="flex-1 space-y-1.5">
                         {ratingBreakdown.map(({ star, count, percent }) => (
@@ -208,7 +210,7 @@ export function ExpertProfileClient({ expertId, demoData }: ExpertProfileClientP
                                 <p className="font-medium text-sm text-gray-900">{review.profiles?.full_name}</p>
                                 <StarRating rating={review.rating} size="sm" />
                               </div>
-                              <p className="text-xs text-gray-400 mt-0.5">{new Date(review.created_at).toLocaleDateString('bn-BD')}</p>
+                              <p className="text-xs text-gray-400 mt-0.5">{new Date(review.created_at).toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en-US')}</p>
                               {review.comment && <p className="text-sm text-gray-700 mt-1">{review.comment}</p>}
                             </div>
                           </div>
@@ -224,10 +226,10 @@ export function ExpertProfileClient({ expertId, demoData }: ExpertProfileClientP
           {/* Right: Packages (sticky) */}
           <div className="space-y-4">
             <div className="sticky top-24 space-y-4">
-              <h2 className="font-bold text-gray-900 text-lg">প্যাকেজসমূহ</h2>
+              <h2 className="font-bold text-gray-900 text-lg">{t('experts.packagesHeading')}</h2>
               {packages.length === 0 ? (
                 <div className="rounded-xl bg-white border border-gray-100 p-6 text-center shadow-sm">
-                  <p className="text-gray-500 text-sm">কোনো প্যাকেজ নেই</p>
+                  <p className="text-gray-500 text-sm">{t('experts.noPackages')}</p>
                 </div>
               ) : (
                 packages.map((pkg) => (

@@ -13,6 +13,7 @@ import { useAgora } from '@/hooks/useAgora';
 import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils/cn';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 interface ConsultationRoomClientProps {
   roomId: string;
@@ -22,6 +23,7 @@ export function ConsultationRoomClient({ roomId }: ConsultationRoomClientProps) 
   const { user, profile } = useAuth();
   const router = useRouter();
   const supabase = createClient();
+  const { t } = useLanguage();
 
   const [room, setRoom] = useState<any>(null);
   const [booking, setBooking] = useState<any>(null);
@@ -96,7 +98,7 @@ export function ConsultationRoomClient({ roomId }: ConsultationRoomClientProps) 
 
     await supabase.from('bookings').update({ status: 'in_progress' }).eq('id', booking.id);
 
-    await sendMessage(user!.id, '✅ সেশন শুরু হয়েছে। টাইমার চালু হয়েছে।', 'system');
+    await sendMessage(user!.id, t('booking.room.sessionStarted'), 'system');
     await fetchRoomData();
   };
 
@@ -131,7 +133,7 @@ export function ConsultationRoomClient({ roomId }: ConsultationRoomClientProps) 
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="h-10 w-10 rounded-xl bg-primary-600 animate-pulse mx-auto mb-3" />
-          <p className="text-gray-500">লোড হচ্ছে...</p>
+          <p className="text-gray-500">{t('booking.room.loading')}</p>
         </div>
       </div>
     );
@@ -142,9 +144,9 @@ export function ConsultationRoomClient({ roomId }: ConsultationRoomClientProps) 
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-3" />
-          <h2 className="text-lg font-bold text-gray-900">প্রবেশাধিকার নেই</h2>
-          <p className="text-gray-500 text-sm mt-1">এই রুমে আপনার প্রবেশাধিকার নেই।</p>
-          <Button className="mt-4" onClick={() => router.push('/dashboard')}>ড্যাশবোর্ডে যান</Button>
+          <h2 className="text-lg font-bold text-gray-900">{t('booking.room.accessDenied')}</h2>
+          <p className="text-gray-500 text-sm mt-1">{t('booking.room.accessDeniedDesc')}</p>
+          <Button className="mt-4" onClick={() => router.push('/dashboard')}>{t('booking.room.goDashboard')}</Button>
         </div>
       </div>
     );
@@ -166,7 +168,9 @@ export function ConsultationRoomClient({ roomId }: ConsultationRoomClientProps) 
           </Avatar>
           <div>
             <p className="font-semibold text-sm text-gray-900">{otherParty?.full_name}</p>
-            <p className="text-xs text-gray-400">{isSessionActive ? '● সেশন চলমান' : isSessionEnded ? 'সেশন শেষ' : 'অপেক্ষা করছে'}</p>
+            <p className="text-xs text-gray-400">
+              {isSessionActive ? t('booking.room.sessionActive') : isSessionEnded ? t('booking.room.sessionEnded') : t('booking.room.waiting')}
+            </p>
           </div>
         </div>
 
@@ -201,7 +205,7 @@ export function ConsultationRoomClient({ roomId }: ConsultationRoomClientProps) 
         {/* Message Input */}
         <div className="border-t border-gray-100 p-3 flex gap-2">
           <Input
-            placeholder={isSessionEnded ? 'সেশন শেষ হয়েছে' : 'বার্তা লিখুন...'}
+            placeholder={isSessionEnded ? t('booking.room.inputEnded') : t('booking.room.inputPlaceholder')}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
@@ -231,7 +235,7 @@ export function ConsultationRoomClient({ roomId }: ConsultationRoomClientProps) 
               timer.isWarning ? 'text-red-400 animate-pulse' : 'text-white'
             )}>
               {timer.formatted}
-              {timer.isWarning && <span className="ml-2 text-xs font-normal">শেষ হতে চলেছে!</span>}
+              {timer.isWarning && <span className="ml-2 text-xs font-normal">{t('booking.room.warningEnding')}</span>}
             </div>
           )}
 
@@ -251,26 +255,26 @@ export function ConsultationRoomClient({ roomId }: ConsultationRoomClientProps) 
                 {otherParty?.full_name?.charAt(0)}
               </div>
               <h2 className="text-xl font-bold mb-2">
-                {isExpert ? 'ব্যবহারকারীর জন্য অপেক্ষা করছে...' : 'বিশেষজ্ঞের জন্য অপেক্ষা করছে...'}
+                {isExpert ? t('booking.room.waitingForUser') : t('booking.room.waitingForExpert')}
               </h2>
-              <p className="text-gray-400 text-sm mb-6">উভয়পক্ষ প্রস্তুত হলে সেশন শুরু করুন</p>
+              <p className="text-gray-400 text-sm mb-6">{t('booking.room.readyToStart')}</p>
               {isExpert && (
                 <Button size="lg" onClick={handleStartSession} className="bg-green-600 hover:bg-green-700">
-                  সেশন শুরু করুন
+                  {t('booking.room.startSession')}
                 </Button>
               )}
             </div>
           ) : isSessionEnded ? (
             <div className="text-center text-white">
               <div className="text-6xl mb-4">✅</div>
-              <h2 className="text-xl font-bold">সেশন সম্পন্ন হয়েছে</h2>
-              <p className="text-gray-400 text-sm mt-1">ধন্যবাদ!</p>
+              <h2 className="text-xl font-bold">{t('booking.room.sessionCompleted')}</h2>
+              <p className="text-gray-400 text-sm mt-1">{t('booking.room.thanks')}</p>
             </div>
           ) : sessionType === 'chat' ? (
             <div className="w-full h-full flex items-center justify-center">
               <div className="text-center text-gray-400">
                 <MessageSquare className="h-16 w-16 mx-auto mb-3 opacity-40" />
-                <p className="text-sm">চ্যাট সেশন চলছে — বাম পাশে বার্তা লিখুন</p>
+                <p className="text-sm">{t('booking.room.chatRunningLeft')}</p>
               </div>
             </div>
           ) : (
@@ -283,7 +287,7 @@ export function ConsultationRoomClient({ roomId }: ConsultationRoomClientProps) 
                     <div className="h-20 w-20 rounded-full bg-gray-700 flex items-center justify-center mx-auto mb-4 text-3xl text-white">
                       {otherParty?.full_name?.charAt(0)}
                     </div>
-                    <p className="text-sm">{otherParty?.full_name} এর সংযোগের অপেক্ষায়...</p>
+                    <p className="text-sm">{otherParty?.full_name}{t('booking.room.waitingConnect')}</p>
                   </div>
                 </div>
               )}
@@ -294,7 +298,7 @@ export function ConsultationRoomClient({ roomId }: ConsultationRoomClientProps) 
                   <div ref={agora.localVideoRef} className="w-full h-full" />
                   {!agora.camOn && (
                     <div className="absolute inset-0 flex items-center justify-center bg-gray-800 text-white text-xs">
-                      ক্যামেরা বন্ধ
+                      {t('booking.room.cameraOff')}
                     </div>
                   )}
                 </div>
@@ -304,7 +308,7 @@ export function ConsultationRoomClient({ roomId }: ConsultationRoomClientProps) 
                 <div className="absolute inset-0 flex items-center justify-center text-center text-gray-300 pointer-events-none">
                   <div>
                     <Mic className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">অডিও সেশন চলছে</p>
+                    <p className="text-sm">{t('booking.room.audioRunning')}</p>
                   </div>
                 </div>
               )}
@@ -343,7 +347,7 @@ export function ConsultationRoomClient({ roomId }: ConsultationRoomClientProps) 
                 className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-full text-sm font-medium"
               >
                 <Phone className="h-4 w-4 rotate-[135deg]" />
-                সেশন শেষ করুন
+                {t('booking.room.endSession')}
               </button>
             )}
           </div>
@@ -356,7 +360,7 @@ export function ConsultationRoomClient({ roomId }: ConsultationRoomClientProps) 
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full">
             {isSessionEnded && !isExpert ? (
               <>
-                <h2 className="text-lg font-bold text-gray-900 mb-4">সেশন কেমন ছিল?</h2>
+                <h2 className="text-lg font-bold text-gray-900 mb-4">{t('booking.room.howWasSession')}</h2>
                 <div className="flex gap-2 justify-center mb-4">
                   {[1,2,3,4,5].map((star) => (
                     <button key={star} onClick={() => setRating(star)} className="text-3xl">
@@ -367,28 +371,28 @@ export function ConsultationRoomClient({ roomId }: ConsultationRoomClientProps) 
                 <textarea
                   className="w-full rounded-lg border border-gray-200 p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-600"
                   rows={3}
-                  placeholder="আপনার অভিজ্ঞতা লিখুন (ঐচ্ছিক)"
+                  placeholder={t('booking.room.reviewPlaceholder')}
                   value={reviewComment}
                   onChange={(e) => setReviewComment(e.target.value)}
                 />
                 <Button className="w-full mt-3" onClick={handleSubmitReview} disabled={rating === 0}>
-                  রিভিউ দিন ও বের হন
+                  {t('booking.room.submitReview')}
                 </Button>
               </>
             ) : isExpert ? (
               <>
-                <h2 className="text-lg font-bold text-gray-900 mb-2">সেশন শেষ করুন?</h2>
-                <p className="text-gray-500 text-sm mb-4">সেশন শেষ করলে টাইমার বন্ধ হবে এবং পেমেন্ট রিলিজ হবে।</p>
+                <h2 className="text-lg font-bold text-gray-900 mb-2">{t('booking.room.endSessionConfirm')}</h2>
+                <p className="text-gray-500 text-sm mb-4">{t('booking.room.endSessionConfirmDesc')}</p>
                 <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1" onClick={() => setShowEndModal(false)}>বাতিল</Button>
-                  <Button className="flex-1 bg-red-600 hover:bg-red-700" onClick={handleEndSession}>হ্যাঁ, শেষ করুন</Button>
+                  <Button variant="outline" className="flex-1" onClick={() => setShowEndModal(false)}>{t('booking.room.cancel')}</Button>
+                  <Button className="flex-1 bg-red-600 hover:bg-red-700" onClick={handleEndSession}>{t('booking.room.yesEnd')}</Button>
                 </div>
               </>
             ) : (
               <>
-                <h2 className="text-lg font-bold text-gray-900 mb-2">সেশন সম্পন্ন হয়েছে</h2>
-                <p className="text-gray-500 text-sm mb-4">ধন্যবাদ! বিশেষজ্ঞকে রেটিং দিন।</p>
-                <Button className="w-full" onClick={() => router.push('/dashboard')}>ড্যাশবোর্ডে যান</Button>
+                <h2 className="text-lg font-bold text-gray-900 mb-2">{t('booking.room.sessionCompleted')}</h2>
+                <p className="text-gray-500 text-sm mb-4">{t('booking.room.completedRateExpert')}</p>
+                <Button className="w-full" onClick={() => router.push('/dashboard')}>{t('booking.room.goDashboard')}</Button>
               </>
             )}
           </div>

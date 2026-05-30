@@ -13,6 +13,7 @@ import { EmptyState } from '@/components/shared/EmptyState';
 import { CATEGORIES } from '@/lib/constants/platform';
 import { DEMO_EXPERTS } from '@/lib/constants/demoExperts';
 import { Users } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 interface FilterState {
   category: string;
@@ -28,6 +29,7 @@ export function ExpertListingClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const supabase = createClient();
+  const { t, lang } = useLanguage();
 
   const [experts, setExperts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,7 +70,7 @@ export function ExpertListingClient() {
           return {
             id: expert.id,
             username: expert.profiles?.username,
-            full_name: expert.profiles?.full_name || 'বিশেষজ্ঞ',
+            full_name: expert.profiles?.full_name || t('experts.fallbackName'),
             avatar_url: expert.profiles?.avatar_url,
             tagline: expert.tagline,
             category: expert.category,
@@ -123,28 +125,28 @@ export function ExpertListingClient() {
       <aside className={`${showFilters ? 'block' : 'hidden'} md:block w-64 shrink-0`}>
         <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm sticky top-24 space-y-6">
           <div>
-            <h3 className="font-semibold text-gray-900 mb-3">বিভাগ</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">{t('experts.category')}</h3>
             <div className="space-y-2">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="radio" checked={!filters.category} onChange={() => updateFilter('category', '')} className="text-primary-600" />
-                <span className="text-sm text-gray-700">সকল বিভাগ</span>
+                <span className="text-sm text-gray-700">{t('experts.allCategories')}</span>
               </label>
               {CATEGORIES.map((cat) => (
                 <label key={cat.slug} className="flex items-center gap-2 cursor-pointer">
                   <input type="radio" checked={filters.category === cat.slug} onChange={() => updateFilter('category', cat.slug)} className="text-primary-600" />
-                  <span className="text-sm text-gray-700">{cat.icon} {cat.label}</span>
+                  <span className="text-sm text-gray-700">{cat.icon} {lang === 'bn' ? cat.labelBn : cat.label}</span>
                 </label>
               ))}
             </div>
           </div>
 
           <div>
-            <h3 className="font-semibold text-gray-900 mb-3">ন্যূনতম রেটিং</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">{t('experts.minRating')}</h3>
             <div className="space-y-2">
               {[0, 3, 4].map((r) => (
                 <label key={r} className="flex items-center gap-2 cursor-pointer">
                   <input type="radio" checked={filters.minRating === r} onChange={() => updateFilter('minRating', r)} className="text-primary-600" />
-                  <span className="text-sm text-gray-700">{r === 0 ? 'সকল' : `${r}★ ও তার উপরে`}</span>
+                  <span className="text-sm text-gray-700">{r === 0 ? t('experts.all') : `${r}${t('experts.ratingAndAbove')}`}</span>
                 </label>
               ))}
             </div>
@@ -153,7 +155,7 @@ export function ExpertListingClient() {
           <div>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={filters.onlineOnly} onChange={(e) => updateFilter('onlineOnly', e.target.checked)} className="text-primary-600 rounded" />
-              <span className="text-sm font-medium text-gray-700">শুধু অনলাইন বিশেষজ্ঞ</span>
+              <span className="text-sm font-medium text-gray-700">{t('experts.onlineExpertsOnly')}</span>
             </label>
           </div>
         </div>
@@ -166,7 +168,7 @@ export function ExpertListingClient() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="নাম, বিষয় বা ক্যাটাগরি দিয়ে খুঁজুন..."
+              placeholder={t('experts.searchPlaceholder')}
               className="pl-9"
               value={filters.q}
               onChange={(e) => updateFilter('q', e.target.value)}
@@ -177,13 +179,13 @@ export function ExpertListingClient() {
             value={filters.sort}
             onChange={(e) => updateFilter('sort', e.target.value)}
           >
-            <option value="rating">সেরা রেটিং</option>
-            <option value="price_asc">মূল্য: কম থেকে বেশি</option>
-            <option value="price_desc">মূল্য: বেশি থেকে কম</option>
-            <option value="sessions">সর্বাধিক সেশন</option>
+            <option value="rating">{t('experts.sortBestRating')}</option>
+            <option value="price_asc">{t('experts.sortPriceAsc')}</option>
+            <option value="price_desc">{t('experts.sortPriceDesc')}</option>
+            <option value="sessions">{t('experts.sortMostSessions')}</option>
           </select>
           <Button variant="outline" onClick={() => setShowFilters(!showFilters)} className="md:hidden">
-            <SlidersHorizontal className="h-4 w-4 mr-2" /> ফিল্টার
+            <SlidersHorizontal className="h-4 w-4 mr-2" /> {t('experts.filter')}
           </Button>
         </div>
 
@@ -192,12 +194,12 @@ export function ExpertListingClient() {
           <div className="flex flex-wrap gap-2 mb-4">
             {filters.category && (
               <Badge variant="secondary" className="cursor-pointer" onClick={() => updateFilter('category', '')}>
-                {CATEGORIES.find((c) => c.slug === filters.category)?.label} ✕
+                {(() => { const c = CATEGORIES.find((c) => c.slug === filters.category); return c ? (lang === 'bn' ? c.labelBn : c.label) : ''; })()} ✕
               </Badge>
             )}
             {filters.onlineOnly && (
               <Badge variant="secondary" className="cursor-pointer" onClick={() => updateFilter('onlineOnly', false)}>
-                শুধু অনলাইন ✕
+                {t('experts.onlineOnlyBadge')} ✕
               </Badge>
             )}
           </div>
@@ -205,7 +207,7 @@ export function ExpertListingClient() {
 
         {/* Results count */}
         {!loading && (
-          <p className="text-sm text-gray-500 mb-4">{experts.length} জন বিশেষজ্ঞ পাওয়া গেছে</p>
+          <p className="text-sm text-gray-500 mb-4">{experts.length} {t('experts.resultsCountSuffix')}</p>
         )}
 
         {/* Expert Grid */}
@@ -216,9 +218,9 @@ export function ExpertListingClient() {
         ) : experts.length === 0 ? (
           <EmptyState
             icon={Users}
-            title="কোনো বিশেষজ্ঞ পাওয়া যায়নি"
-            description="ফিল্টার পরিবর্তন করে আবার চেষ্টা করুন।"
-            actionLabel="সকল ফিল্টার মুছুন"
+            title={t('experts.emptyTitle')}
+            description={t('experts.emptyDescription')}
+            actionLabel={t('experts.clearAllFilters')}
             onAction={() => setFilters({ category: '', minPrice: 300, maxPrice: 5000, minRating: 0, onlineOnly: false, q: '', sort: 'rating' })}
           />
         ) : (

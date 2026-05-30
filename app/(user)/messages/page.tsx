@@ -9,9 +9,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Skeleton } from '@/components/shared/LoadingSkeleton';
 import Link from 'next/link';
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 export default function MessagesPage() {
   const { profile } = useAuth();
+  const { t } = useLanguage();
   const [rooms, setRooms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
@@ -45,7 +47,7 @@ export default function MessagesPage() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">বার্তা</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('user.messages.title')}</h1>
 
       {loading ? (
         <div className="space-y-3">
@@ -54,8 +56,8 @@ export default function MessagesPage() {
       ) : rooms.length === 0 ? (
         <EmptyState
           icon={MessageSquare}
-          title="কোনো বার্তা নেই"
-          description="পরামর্শ সেশন শুরু হলে এখানে চ্যাট দেখা যাবে।"
+          title={t('user.messages.empty.title')}
+          description={t('user.messages.empty.desc')}
         />
       ) : (
         <div className="space-y-2">
@@ -79,10 +81,10 @@ export default function MessagesPage() {
                       <p className="text-xs text-gray-400">{new Date(lastMessage.sent_at).toLocaleDateString('bn-BD')}</p>
                     )}
                   </div>
-                  <p className="text-sm text-gray-500 truncate">{lastMessage?.content || 'কোনো বার্তা নেই'}</p>
+                  <p className="text-sm text-gray-500 truncate">{lastMessage?.content || t('user.messages.noMessage')}</p>
                   <div className="flex items-center gap-2 mt-0.5">
                     <Badge variant={room.status === 'active' ? 'online' : room.status === 'ended' ? 'secondary' : 'warning'} className="text-xs">
-                      {room.status === 'active' ? 'চলমান' : room.status === 'ended' ? 'শেষ' : 'অপেক্ষমাণ'}
+                      {room.status === 'active' ? t('user.messages.roomStatus.active') : room.status === 'ended' ? t('user.messages.roomStatus.ended') : t('user.messages.roomStatus.pending')}
                     </Badge>
                     {unreadCount > 0 && (
                       <span className="bg-primary-600 text-white text-xs rounded-full px-1.5 py-0.5">{unreadCount}</span>
